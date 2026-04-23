@@ -1,0 +1,23 @@
+# Reminders surfaced as acceptance criteria on each task. These are prompts
+# for the implementer — checking them does NOT prove compliance, it only
+# records that the implementer considered them.
+templates:
+  default:
+    - id: gdpr-storage
+      label: "DSGVO-conforming storage of personal data"
+      category: gdpr
+    - id: 2fa-available
+      label: "2FA available on authenticated routes"
+      category: auth
+    - id: passkey-support
+      label: "Passkey / WebAuthn Level 2 supported where relevant"
+      category: auth
+    - id: rate-limiting
+      label: "Rate-limiting on sensitive endpoints"
+      category: hardening
+    - id: input-validation
+      label: "Server-side input validation (schema + size limits)"
+      category: hardening
+    - id: secrets-not-committed
+      label: "No secrets committed to the repo"
+      category: ops
