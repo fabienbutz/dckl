@@ -1,5 +1,7 @@
 export { etag } from "./etag.js";
 export { EtagMismatch, readWithEtag, writeAtomic } from "./fs-adapter.js";
+export { groupCommitsByTask, listCommits } from "./git-log.js";
+export type { CommitRef } from "./git-log.js";
 export { loadIgnoreMatcher } from "./ignore.js";
 export type { IgnoreMatcher } from "./ignore.js";
 export {

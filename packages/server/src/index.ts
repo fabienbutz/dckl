@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
 import { EventBus } from "./events/bus.js";
 import { changelogRoutes } from "./routes/changelog.js";
+import { commitsRoutes } from "./routes/commits.js";
 import { configRoutes } from "./routes/config.js";
 import { journeyRoutes } from "./routes/journeys.js";
 import { sprintRoutes } from "./routes/sprints.js";
@@ -76,6 +77,7 @@ export function createApp(options: AppOptions = {}): AppHandle {
     app.route("/api/config", configRoutes(store));
     app.route("/api/sprints", sprintRoutes(store));
     app.route("/api/sprints", taskRoutes(store));
+    app.route("/api/sprints", commitsRoutes(store));
     app.route("/api/templates", templateRoutes(store));
     app.route("/api/changelog", changelogRoutes(store));
     app.route("/api/journeys", journeyRoutes(store));

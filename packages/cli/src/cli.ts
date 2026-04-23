@@ -8,6 +8,7 @@ import { runDoctor } from "./commands/doctor.js";
 import { runExport } from "./commands/export.js";
 import { runJourneyList, runJourneyNew } from "./commands/journey.js";
 import { runSprintClose } from "./commands/sprint.js";
+import { runSyncCommits } from "./commands/sync-commits.js";
 import { runStatus } from "./commands/status.js";
 import { runStop } from "./commands/stop.js";
 import { type VisionInitOptions, runVisionInit } from "./commands/vision.js";
@@ -147,6 +148,14 @@ program
   .description("Print a structured Claude prompt with all context for a task")
   .action(async (taskId: string) => {
     await runExport(taskId);
+  });
+
+program
+  .command("sync-commits [sprint-id]")
+  .description("Print every commit referencing a task id in the given (or active) sprint")
+  .option("--json", "Output JSON instead of Markdown")
+  .action(async (sprintId: string | undefined, opts: { json?: boolean }) => {
+    await runSyncCommits({ sprintId, json: opts.json });
   });
 
 program

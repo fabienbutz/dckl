@@ -11,6 +11,14 @@ import type {
 
 export type WithEtag<T> = { data: T; etag: string };
 
+export type CommitRef = {
+  sha: string;
+  short: string;
+  date: string;
+  subject: string;
+  body: string;
+};
+
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
@@ -120,6 +128,10 @@ export const api = {
     request<SecurityCheckTemplates>("/api/templates/security-checks"),
   getSprints: () => request<{ sprints: SprintMeta[] }>("/api/sprints"),
   getSprint: (id: string) => request<Sprint>(`/api/sprints/${encodeURIComponent(id)}`),
+  getSprintCommits: (id: string) =>
+    request<{ commits: Record<string, CommitRef[]> }>(
+      `/api/sprints/${encodeURIComponent(id)}/commits`,
+    ),
   getTask: (sprintId: string, taskId: string) =>
     request<Task>(
       `/api/sprints/${encodeURIComponent(sprintId)}/tasks/${encodeURIComponent(taskId)}`,

@@ -12,6 +12,7 @@ const keys = {
   journey: (id: string) => ["journey", id] as const,
   sprints: ["sprints"] as const,
   sprint: (id: string) => ["sprint", id] as const,
+  sprintCommits: (id: string) => ["sprint-commits", id] as const,
   task: (sprintId: string, taskId: string) => ["task", sprintId, taskId] as const,
 };
 
@@ -94,6 +95,18 @@ export function useSprint(id: string | null | undefined) {
     queryKey: id ? keys.sprint(id) : ["sprint", "disabled"],
     queryFn: () => api.getSprint(id as string),
     enabled: Boolean(id),
+  });
+}
+
+export function useSprintCommits(id: string | null | undefined) {
+  return useQuery({
+    queryKey: id ? keys.sprintCommits(id) : ["sprint-commits", "disabled"],
+    queryFn: () => api.getSprintCommits(id as string),
+    enabled: Boolean(id),
+    select: (v) => v.data.commits,
+    staleTime: 30_000,
+    // git log is cheap but not free; refetch once a minute while idle.
+    refetchInterval: 60_000,
   });
 }
 

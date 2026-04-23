@@ -2,6 +2,20 @@
 
 ## 2026-04-23
 
+- **20:30** · `DCK-21` · status `in_progress` → `done`
+
+- **20:30** · `DCK-21` · test `api-endpoint` → checked
+
+- **20:30** · `DCK-21` · test `drawer-section` → checked
+
+- **20:30** · `DCK-21` · test `json-output` → checked
+
+- **20:30** · `DCK-21` · test `read-only` → checked
+
+- **20:30** · `DCK-21` · test `groups-by-task` → checked
+
+- **20:30** · `DCK-21` · test `parses-git-log` → checked
+
 - **16:53** · `DCK-18` · status `in_progress` → `done`
 
 - **16:52** · `DCK-19` · status `in_progress` → `done`

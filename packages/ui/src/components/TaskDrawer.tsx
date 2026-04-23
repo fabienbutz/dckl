@@ -6,6 +6,7 @@ import {
   BookOpen,
   CheckCircle2,
   FlaskConical,
+  GitCommit,
   Loader2,
   ShieldCheck,
   X,
@@ -17,6 +18,7 @@ import {
   useConfig,
   usePatchTask,
   useSecurityTemplates,
+  useSprintCommits,
   useTask,
 } from "../lib/queries.js";
 import { Checkbox } from "./Checkbox.js";
@@ -53,6 +55,8 @@ export function TaskDrawer({ sprintId, taskId, onClose, onOpenDoc }: Props) {
 
   const meta: TaskMeta | undefined = task.data?.data.meta;
   const body: string = task.data?.data.body ?? "";
+  const commitsBySprintTask = useSprintCommits(sprintId);
+  const commits = commitsBySprintTask.data?.[taskId] ?? [];
   const claimState = classifyClaim(meta?.claim);
   const isLive = claimState === "fresh";
 
@@ -200,6 +204,29 @@ export function TaskDrawer({ sprintId, taskId, onClose, onOpenDoc }: Props) {
               )}
             </Section>
 
+            <Section icon={GitCommit} title="Commits" count={commits.length}>
+              {commits.length === 0 ? (
+                <Empty>No commits reference this task yet.</Empty>
+              ) : (
+                commits.map((commit) => (
+                  <div
+                    key={commit.sha}
+                    className="flex items-start gap-3 px-3 py-2 rounded-[4px] border border-border-subtle"
+                  >
+                    <span className="font-mono text-label text-text-tertiary tabular-nums shrink-0 mt-[2px]">
+                      {commit.short}
+                    </span>
+                    <span className="text-body text-text-primary truncate flex-1">
+                      {commit.subject}
+                    </span>
+                    <span className="text-label text-text-tertiary tabular-nums shrink-0 mt-[2px]">
+                      {formatRelativeDate(commit.date)}
+                    </span>
+                  </div>
+                ))
+              )}
+            </Section>
+
             {meta.related_docs && meta.related_docs.length > 0 && (
               <Section
                 icon={BookOpen}
@@ -231,6 +258,20 @@ export function TaskDrawer({ sprintId, taskId, onClose, onOpenDoc }: Props) {
       </div>
     </aside>
   );
+}
+
+function formatRelativeDate(iso: string): string {
+  const then = Date.parse(iso);
+  if (Number.isNaN(then)) return "";
+  const diffMs = Date.now() - then;
+  const diffMin = Math.round(diffMs / 60_000);
+  if (diffMin < 1) return "just now";
+  if (diffMin < 60) return `${diffMin}m`;
+  const diffHr = Math.round(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}h`;
+  const diffDay = Math.round(diffHr / 24);
+  if (diffDay < 30) return `${diffDay}d`;
+  return new Date(then).toISOString().slice(0, 10);
 }
 
 function Empty({ children }: { children: React.ReactNode }) {

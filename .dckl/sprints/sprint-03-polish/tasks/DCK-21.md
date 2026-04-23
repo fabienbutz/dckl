@@ -2,46 +2,44 @@
 schema: 1
 id: DCK-21
 sprint_id: sprint-03-polish
-title: "Commits pro Task sichtbar machen (`dckl sync-commits` + Drawer-Section)"
+title: Commits pro Task sichtbar machen (`dckl sync-commits` + Drawer-Section)
 type: feature
-status: todo
+status: done
 security_checks: []
 test_criteria:
   - id: parses-git-log
     label: >-
-      `dckl sync-commits` liest `git log` seit Sprint-Start und
-      extrahiert `Refs DCK-NN` / `Closes DCK-NN` aus Commit-Messages.
-    checked: false
+      `dckl sync-commits` liest `git log` seit Sprint-Start und extrahiert `Refs
+      DCK-NN` / `Closes DCK-NN` aus Commit-Messages.
+    checked: true
   - id: groups-by-task
     label: >-
-      Zeigt pro Task eine Liste der referenzierenden Commits (Hash +
-      Summary), sortiert nach Datum. Tasks ohne Commits sind separat
-      als "no commit yet" aufgeführt.
-    checked: false
+      Zeigt pro Task eine Liste der referenzierenden Commits (Hash + Summary),
+      sortiert nach Datum. Tasks ohne Commits sind separat als "no commit yet"
+      aufgeführt.
+    checked: true
   - id: read-only
     label: >-
-      Flippt **keine** Checkboxen und setzt **keinen** Status. Nur
-      Sichtbarkeit — die Zuordnung Commit→Akzeptanzkriterium bleibt
-      menschliches Urteil.
-    checked: false
+      Flippt **keine** Checkboxen und setzt **keinen** Status. Nur Sichtbarkeit
+      — die Zuordnung Commit→Akzeptanzkriterium bleibt menschliches Urteil.
+    checked: true
   - id: json-output
     label: >-
-      Mit `--json` gibt der Befehl maschinenlesbares JSON aus, das von
-      UI oder externen Tools konsumiert werden kann.
-    checked: false
+      Mit `--json` gibt der Befehl maschinenlesbares JSON aus, das von UI oder
+      externen Tools konsumiert werden kann.
+    checked: true
   - id: drawer-section
     label: >-
-      Der `TaskDrawer` zeigt unter einer "Commits"-Sektion alle
-      referenzierenden Commits der aktuellen Task (Hash verkürzt,
-      Subject, relative Zeit). Sektion ist leer-graceful (zeigt
-      "no commits yet" wenn keine Referenzen).
-    checked: false
+      Der `TaskDrawer` zeigt unter einer "Commits"-Sektion alle referenzierenden
+      Commits der aktuellen Task (Hash verkürzt, Subject, relative Zeit).
+      Sektion ist leer-graceful (zeigt "no commits yet" wenn keine Referenzen).
+    checked: true
   - id: api-endpoint
     label: >-
-      Server-Endpoint `GET /api/sprints/:sprintId/commits` liefert eine
-      Map `{ taskId: [{sha, subject, date}] }`. Client holt sich das
-      einmal pro Sprint, cacht via React Query.
-    checked: false
+      Server-Endpoint `GET /api/sprints/:sprintId/commits` liefert eine Map `{
+      taskId: [{sha, subject, date}] }`. Client holt sich das einmal pro Sprint,
+      cacht via React Query.
+    checked: true
 corrections: []
 context_files:
   - packages/cli/src/commands/sync-commits.ts
@@ -53,8 +51,9 @@ depends_on:
   - DCK-18
 pre_flight:
   - >-
-    Vorher prüfen, ob die Konvention `Refs DCK-NN` tatsächlich
-    eingehalten wird. Wenn nicht, lohnt der Befehl nichts.
+    Vorher prüfen, ob die Konvention `Refs DCK-NN` tatsächlich eingehalten wird.
+    Wenn nicht, lohnt der Befehl nichts.
+updated: '2026-04-23T18:30:18.025Z'
 ---
 
 ## Worum es geht
