@@ -220,7 +220,11 @@ export class Store {
       updated: new Date().toISOString(),
     });
 
-    const nextTask: Task = { meta: nextMeta, body: currentTask.body };
+    const nextTask: Task = {
+      meta: nextMeta,
+      body: currentTask.body,
+      summary: currentTask.summary,
+    };
     const serialized = stringifyTask(nextTask);
     const newEtag = await writeAtomic(file, serialized, {
       ifMatch,
@@ -310,7 +314,7 @@ export class Store {
     const content = await readFile(file, "utf8");
     const current = parseTask(content);
     const nextMeta = v.parse(TaskMetaSchema, transform(current.meta));
-    const nextTask: Task = { meta: nextMeta, body: current.body };
+    const nextTask: Task = { meta: nextMeta, body: current.body, summary: current.summary };
     const serialized = stringifyTask(nextTask);
     const newEtag = await writeAtomic(file, serialized, {
       trashDir: this.paths.trash,

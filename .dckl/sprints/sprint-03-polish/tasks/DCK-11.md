@@ -4,32 +4,32 @@ id: DCK-11
 sprint_id: sprint-03-polish
 title: Sidebar task rows — summary line + layout polish
 type: feature
-status: todo
+status: done
 security_checks:
   - id: input-validation
-    checked: false
+    checked: true
 test_criteria:
   - id: summary-extracted
     label: >-
       Each task row in the SprintBoard renders the task title plus a one-line
-      summary auto-extracted from the task body (first prose line after the
-      `## <ID>:` heading)
-    checked: false
+      summary auto-extracted from the task body (first prose line after the `##
+      <ID>:` heading)
+    checked: true
   - id: truncation
     label: >-
       Summary is truncated to a single line with ellipsis when it exceeds the
       row width — no layout shift on long titles
-    checked: false
+    checked: true
   - id: empty-fallback
     label: >-
-      Tasks with no body text below the heading render the title alone,
-      without an empty second line
-    checked: false
+      Tasks with no body text below the heading render the title alone, without
+      an empty second line
+    checked: true
   - id: density
     label: >-
-      Row vertical rhythm still matches the Linear-style density we landed on
-      in Sprint-02 (no double padding, no collapse)
-    checked: false
+      Row vertical rhythm still matches the Linear-style density we landed on in
+      Sprint-02 (no double padding, no collapse)
+    checked: true
 corrections: []
 context_files:
   - packages/ui/src/components/SprintBoard.tsx
@@ -38,13 +38,14 @@ context_files:
 depends_on: []
 pre_flight:
   - >-
-    Decide extraction cut-off: first non-empty paragraph, or first sentence?
-    The task MDs have a `## <ID>: <title>` heading followed by either a single
-    short paragraph (DCK-10) or a `### Why` sub-section (DCK-04) — handle both.
+    Decide extraction cut-off: first non-empty paragraph, or first sentence? The
+    task MDs have a `## <ID>: <title>` heading followed by either a single short
+    paragraph (DCK-10) or a `### Why` sub-section (DCK-04) — handle both.
   - >-
     Decide where summary is computed: server-side on read (cheap, already
     parsing frontmatter) or client-side from the body text. Server-side keeps
     the UI code smaller.
+updated: '2026-04-23T14:48:32.474Z'
 ---
 
 ## DCK-11: Sidebar task rows — summary line + layout polish

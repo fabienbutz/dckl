@@ -3,14 +3,14 @@ import { motion } from "framer-motion";
 import { AlertTriangle, Loader2, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { cn } from "../lib/cn.js";
 import { useSprint } from "../lib/queries.js";
-import { ROW_GRID, TaskRow } from "./TaskRow.js";
+import { ROW_GRID, TaskRow, type TaskRowData } from "./TaskRow.js";
 
 type Props = {
   sprintId: string;
   selectedTaskId: string | null;
   onSelectTask: (taskId: string) => void;
   onStatusCycle: (task: TaskMeta, next: TaskMeta["status"]) => void;
-  tasks: TaskMeta[];
+  tasks: TaskRowData[];
   sidebarCollapsed: boolean;
   onToggleSidebar: () => void;
 };

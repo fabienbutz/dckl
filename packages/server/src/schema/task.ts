@@ -53,6 +53,13 @@ export type TaskMeta = v.InferOutput<typeof TaskMeta>;
 export type Task = {
   meta: TaskMeta;
   body: string;
+  /**
+   * One-line auto-extracted summary for the sidebar — first prose block
+   * after the title heading, markdown-stripped, truncated. Null when the
+   * body has no prose content. Derived by `parseTask`, not persisted —
+   * optional on hand-constructed fixtures.
+   */
+  summary?: string | null;
 };
 
 export function isClaimFresh(claim: TaskClaim | undefined, now: number = Date.now()): boolean {

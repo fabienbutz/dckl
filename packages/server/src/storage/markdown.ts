@@ -28,7 +28,55 @@ export function parseSprint(content: string): Sprint {
 export function parseTask(content: string): Task {
   const parsed = matter(content, GRAY_MATTER_OPTIONS);
   const meta = v.parse(TaskMeta, parsed.data);
-  return { meta, body: parsed.content.trimStart() };
+  const body = parsed.content.trimStart();
+  return { meta, body, summary: extractSummary(body) };
+}
+
+/**
+ * Extracts a one-line summary from a task body. Skips leading `##` headings
+ * (the task title/intro), walks through any immediately-following `###`
+ * sub-headings, and grabs the first prose block. Returns null when the body
+ * is empty or only contains headings. Strips basic markdown inline
+ * formatting so the sidebar is readable at a glance.
+ */
+export function extractSummary(body: string, maxChars = 160): string | null {
+  const lines = body.split("\n");
+  const prose: string[] = [];
+  let i = 0;
+
+  // Skip a leading `##` heading (task title line) if present.
+  while (i < lines.length && (lines[i] ?? "").trim() === "") i++;
+  if (i < lines.length && /^##\s+/.test((lines[i] ?? "").trim())) i++;
+
+  while (i < lines.length) {
+    const line = (lines[i] ?? "").trim();
+    if (!line) {
+      if (prose.length > 0) break;
+      i++;
+      continue;
+    }
+    if (/^#{1,6}\s+/.test(line)) {
+      if (prose.length > 0) break;
+      i++;
+      continue;
+    }
+    prose.push(line);
+    i++;
+  }
+
+  if (prose.length === 0) return null;
+
+  let summary = prose.join(" ").replace(/\s+/g, " ").trim();
+  summary = summary
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/\*([^*]+)\*/g, "$1")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
+
+  if (summary.length > maxChars) {
+    summary = `${summary.slice(0, maxChars - 1).trimEnd()}…`;
+  }
+  return summary;
 }
 
 export function stringifySprint(sprint: Sprint): string {

@@ -61,9 +61,13 @@ function AppInner() {
     }, [activeSprintId, sprints.data]),
   });
 
-  const tasks: TaskMeta[] = taskQueries
-    .map((q) => q.data?.data.meta)
-    .filter((m): m is TaskMeta => Boolean(m));
+  const tasks = taskQueries
+    .map((q) => {
+      const data = q.data?.data;
+      if (!data) return null;
+      return { ...data.meta, summary: data.summary ?? null };
+    })
+    .filter((t): t is TaskMeta & { summary: string | null } => Boolean(t));
 
   if (config.isError && config.error instanceof ApiError && config.error.status === 503) {
     return (

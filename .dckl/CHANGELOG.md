@@ -2,6 +2,18 @@
 
 ## 2026-04-23
 
+- **16:48** · `DCK-11` · status `in_progress` → `done`
+
+- **16:48** · `DCK-11` · reminder `input-validation` → checked
+
+- **16:48** · `DCK-11` · test `density` → checked
+
+- **16:48** · `DCK-11` · test `empty-fallback` → checked
+
+- **16:48** · `DCK-11` · test `truncation` → checked
+
+- **16:48** · `DCK-11` · test `summary-extracted` → checked
+
 - **16:43** · `DCK-15` · status `in_progress` → `done`
 
 - **16:43** · `DCK-15` · reminder `input-validation` → checked
