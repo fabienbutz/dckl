@@ -4,9 +4,10 @@ coverage
 .DS_Store
 *.log
 
-# Deckel runtime artifacts
+# Deckel runtime artifacts (NOT the sprint state — that's in-repo for dogfooding)
 .deckel/.trash
 .deckel/.port
+.deckel/.active-task
 
 # Editor
 .vscode/*
