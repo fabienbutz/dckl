@@ -7,6 +7,7 @@ import { runServe } from "./commands/serve.js";
 import { runDoctor } from "./commands/doctor.js";
 import { runExport } from "./commands/export.js";
 import { runJourneyList, runJourneyNew } from "./commands/journey.js";
+import { runPages } from "./commands/pages.js";
 import { runSprintClose } from "./commands/sprint.js";
 import { runSyncCommits } from "./commands/sync-commits.js";
 import { runStatus } from "./commands/status.js";
@@ -156,6 +157,14 @@ program
   .option("--json", "Output JSON instead of Markdown")
   .action(async (sprintId: string | undefined, opts: { json?: boolean }) => {
     await runSyncCommits({ sprintId, json: opts.json });
+  });
+
+program
+  .command("pages")
+  .description("List every frontend page/route in the project (Next.js auto-detected)")
+  .option("--json", "Output JSON instead of Markdown")
+  .action(async (opts: { json?: boolean }) => {
+    await runPages(opts);
   });
 
 program

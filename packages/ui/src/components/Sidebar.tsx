@@ -5,6 +5,7 @@ import {
   ChevronRight,
   History,
   Layers,
+  Map,
   Route,
   Settings,
 } from "lucide-react";
@@ -13,7 +14,7 @@ import { useEffect, useState } from "react";
 import { cn } from "../lib/cn.js";
 import { useJourneys, useStackInventory } from "../lib/queries.js";
 
-export type BrowseView = "changelog" | "stack" | "journey";
+export type BrowseView = "changelog" | "stack" | "pages" | "journey";
 
 type Props = {
   config: Config | null;
@@ -159,6 +160,21 @@ export function Sidebar({
                     {stack.data.entries.length}
                   </span>
                 )}
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                onClick={() => onSelectView("pages")}
+                className={cn(
+                  "w-full flex items-center gap-3 px-3 py-1.5 rounded-[4px] text-left text-body transition-colors",
+                  activeView === "pages"
+                    ? "bg-surface-elevated text-text-primary"
+                    : "text-text-secondary hover:bg-surface-hover hover:text-text-primary",
+                )}
+              >
+                <Map size={14} strokeWidth={1.5} />
+                <span className="flex-1 truncate">Pages</span>
               </button>
             </li>
             <li>

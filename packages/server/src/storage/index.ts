@@ -12,3 +12,5 @@ export {
   taskFile,
 } from "./paths.js";
 export type { DcklPaths } from "./paths.js";
+export { scanRoutes } from "./route-scanner.js";
+export type { RouteEntry, ScanResult, ScanOptions } from "./route-scanner.js";

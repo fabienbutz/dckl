@@ -2,6 +2,20 @@
 
 ## 2026-04-23
 
+- **20:34** · `DCK-22` · status `in_progress` → `done`
+
+- **20:34** · `DCK-22` · reminder `input-validation` → checked
+
+- **20:34** · `DCK-22` · test `no-framework-noop` → checked
+
+- **20:34** · `DCK-22` · test `ui-view` → checked
+
+- **20:34** · `DCK-22` · test `cli-output` → checked
+
+- **20:34** · `DCK-22` · test `config-override` → checked
+
+- **20:34** · `DCK-22` · test `nextjs-auto-detect` → checked
+
 - **20:31** · `DCK-23` · status `in_progress` → `done`
 
 - **20:31** · `DCK-23` · test `empty-graceful` → checked

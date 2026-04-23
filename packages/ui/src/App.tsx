@@ -6,6 +6,7 @@ import { ChangelogView } from "./components/ChangelogView.js";
 import { EmptyState } from "./components/EmptyState.js";
 import { ErrorBoundary } from "./components/ErrorBoundary.js";
 import { JourneyView } from "./components/JourneyView.js";
+import { PagesView } from "./components/PagesView.js";
 import { type BrowseView, Sidebar } from "./components/Sidebar.js";
 import { SprintBoard } from "./components/SprintBoard.js";
 import { StackView } from "./components/StackView.js";
@@ -123,6 +124,13 @@ function AppInner() {
             <StackView
               activePath={activeStackPath}
               onSelectPath={setActiveStackPath}
+            />
+          ) : activeView === "pages" ? (
+            <PagesView
+              onSelectFile={(file) => {
+                setActiveStackPath(file);
+                setActiveView("stack");
+              }}
             />
           ) : activeView === "journey" && activeJourneyId ? (
             <JourneyView journeyId={activeJourneyId} />

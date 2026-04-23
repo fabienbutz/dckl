@@ -132,6 +132,12 @@ export const api = {
     request<{ commits: Record<string, CommitRef[]> }>(
       `/api/sprints/${encodeURIComponent(id)}/commits`,
     ),
+  getPages: () =>
+    request<{
+      framework: "nextjs" | "custom" | "none";
+      entries: Array<{ route: string; file: string }>;
+      scannedRoots: string[];
+    }>("/api/pages"),
   getTask: (sprintId: string, taskId: string) =>
     request<Task>(
       `/api/sprints/${encodeURIComponent(sprintId)}/tasks/${encodeURIComponent(taskId)}`,
