@@ -29,22 +29,31 @@ the block is a summary primer, this file is the full specification.
 All commands below are implemented. Each is safe to invoke directly.
 
 ```bash
-pnpm dckl                              # default = serve; starts UI on :4321
-pnpm dckl status                       # project-wide report (vision, sprint, gaps)
-pnpm dckl export <TASK-ID>             # structured prompt for this task
-pnpm dckl task claim <TASK-ID>         # mark live-worked, starts amber pulse
-pnpm dckl task release <TASK-ID>       # clear the claim
-pnpm dckl check <TASK-ID> <check-id>   # toggle a reminder or test check
-pnpm dckl correction add <TASK-ID> "<text>"   # log an issue discovered mid-work
+pnpm dckl                                       # default = serve; UI on :4321
+pnpm dckl status                                # vision, sprint, gaps, recent
+pnpm dckl export <TASK-ID>                      # structured prompt for this task
+pnpm dckl task claim <TASK-ID>                  # mark live-worked, amber pulse
+pnpm dckl task release <TASK-ID>                # clear the claim (status unchanged)
+pnpm dckl task close <TASK-ID> [--force]        # status=done + release claim
+pnpm dckl check <TASK-ID> <check-id>            # toggle a reminder or test check
+pnpm dckl correction add <TASK-ID> "<text>"     # log an issue mid-work
+pnpm dckl correction resolve <TASK-ID> <cid>    # mark a correction resolved
+                                                # + optional --target-sprint <slug>
+pnpm dckl sprint close <SPRINT-ID> [--force]    # archive sprint + write SUMMARY.md
+                                                # + optional --dry-run
+pnpm dckl doctor [--fix]                        # audit layout + auto-clear orphans
+pnpm dckl journey new <slug>                    # scaffold a journey
+pnpm dckl journey list                          # list journeys with step counts
+pnpm dckl vision init                           # scaffold VISION.md
+pnpm dckl stop                                  # gracefully stop the running server
 ```
 
 `pnpm dckl heartbeat` also exists but fires automatically from the
-PostToolUse hook. Never invoke it yourself.
+PostToolUse hook. **Never invoke it yourself.**
 
-**Planned (not yet built):** journeys (`.dckl/journeys/`), a Stack /
-Docs / Memory reader in the UI. If the user asks for those, tell them the
-concept is reserved but the feature ships later; don't pretend commands
-exist that don't.
+The UI exposes a Stack / Docs / Memory reader (`MarkdownReader` over
+`/api/stack/:path`) and live SSE updates for every task. Journeys are
+readable via `journey list/new`; a richer editor lands later.
 
 ---
 
@@ -178,13 +187,21 @@ when in doubt, ask.
 ### Step 6 — Release
 
 ```bash
-pnpm dckl task release <TASK-ID>
+pnpm dckl task release <TASK-ID>        # status unchanged, claim cleared
+pnpm dckl task close   <TASK-ID>        # status=done AND claim cleared
+pnpm dckl task close   <TASK-ID> --force # also with open reminders
 ```
 
-If release **fails** (e.g. server crashed mid-session), tell the user
-explicitly: _"Claim could not be released — when the server is back,
-run `pnpm dckl task release <TASK-ID>` manually, otherwise the
-amber-pulse will stay on."_
+**`release` is not `close`.** Release only clears the claim — status
+stays where it is (usually `in_progress`). Close atomically flips the
+task to `done` and releases in one step. If the user has authorised
+marking the task done, use `close`. Otherwise, release and let the
+user flip status in the UI.
+
+If release or close **fails** (e.g. server crashed mid-session), tell
+the user explicitly: _"Claim could not be released — when the server
+is back, run `pnpm dckl task release <TASK-ID>` manually, otherwise
+the amber-pulse will stay on."_
 
 Then summarise in chat:
 
@@ -193,6 +210,31 @@ Then summarise in chat:
 - What remains open
 - Whether you recommend `done`, `review`, or keeping `in_progress`
 - Corrections you added (by ID)
+- Corrections you resolved via `correction resolve`, if any
+
+---
+
+## Learned anti-patterns (Sprint-02 & Sprint-03)
+
+Concrete mistakes the tool has already absorbed the hard way:
+
+- **Heartbeat is automatic.** The PostToolUse hook fires
+  `pnpm dckl heartbeat` on every tool use. Never invoke it manually —
+  doing so just muddies the activity log without changing anything.
+- **`release` ≠ `close`.** Releasing a claim leaves the status as
+  `in_progress`. Closing archives the work. Mixing them up leaves
+  zombies (`in_progress` forever).
+- **Corrections die only when resolved.** Adding a correction and
+  moving on leaves it open forever. Use `correction resolve <id>
+  <cid>` (with `--target-sprint` to forward) — do not silently drop.
+- **Close a sprint properly.** `sprint close <id>` writes SUMMARY.md,
+  moves the folder into `.archive/`, and clears `.active-task`.
+  Handwritten PATCH loops drift.
+- **Stale-Edit after CLI calls.** A CLI write (claim, check, close,
+  correction) mutates the task frontmatter via the server. If you
+  then `Edit` the file you Read *before* the CLI call, the Edit
+  fails with a stale-file error. Always re-Read after CLI activity
+  on the same file.
 
 ---
 
@@ -323,13 +365,13 @@ Longer prose body (optional).
 
 Flag to the user if `updated` is > 60 days old — stale visions mislead.
 
-### Journeys (planned)
+### Journeys
 
-A journey will be an ordered list of routes users traverse. Schema lands
-later. If the user asks about journeys, describe the planned shape and
-suggest tracking the same info inside task bodies under "Out of scope"
-or a `docs/` note for now. Do not write to `.dckl/journeys/` — no
-reader exists yet.
+A journey is an ordered list of routes/steps users traverse across
+sprints. `dckl journey new <slug>` scaffolds one under
+`.dckl/journeys/<slug>.md`; `dckl journey list` prints every journey
+with done/broken step counts. Bodies are free-form Markdown with a
+`steps:` frontmatter list. The UI renders them in the left nav.
 
 ---
 

@@ -4,29 +4,29 @@ id: DCK-16
 sprint_id: sprint-03-polish
 title: SKILL.md + CLAUDE.md reality refresh — reflect Sprint-02 learnings
 type: chore
-status: todo
+status: done
 security_checks: []
 test_criteria:
   - id: no-stale-workarounds
     label: >-
-      SKILL.md contains no references to manual PATCH / curl workflows
-      (replaced with `task close`, `correction resolve`, `sprint close`)
-    checked: false
+      SKILL.md contains no references to manual PATCH / curl workflows (replaced
+      with `task close`, `correction resolve`, `sprint close`)
+    checked: true
   - id: command-table-accurate
     label: >-
-      The command table in CLAUDE.md matches the current CLI surface 1:1
-      (run `dckl --help` and diff)
-    checked: false
+      The command table in CLAUDE.md matches the current CLI surface 1:1 (run
+      `dckl --help` and diff)
+    checked: true
   - id: anti-patterns-updated
     label: >-
       New anti-patterns learned in Sprint-02 are documented in SKILL.md:
       stale-Edit state, heartbeat not-manual, close != release
-    checked: false
+    checked: true
   - id: no-planned-markers
     label: >-
       No `[planned]` markers or "coming in sprint X" notes — docs describe
       reality, not intent
-    checked: false
+    checked: true
 corrections: []
 context_files:
   - .claude/skills/dckl/SKILL.md
@@ -37,11 +37,12 @@ depends_on:
   - DCK-15
 pre_flight:
   - >-
-    Do this task LAST in the sprint, after DCK-12/13/15 have landed — the
-    doc refresh needs to reflect what actually exists, not what's planned.
+    Do this task LAST in the sprint, after DCK-12/13/15 have landed — the doc
+    refresh needs to reflect what actually exists, not what's planned.
   - >-
-    Sprint-02 did this pass once already (S2.8-7 Reality-Pass). Repeat the
-    same discipline: diff `dckl --help` against SKILL.md line by line.
+    Sprint-02 did this pass once already (S2.8-7 Reality-Pass). Repeat the same
+    discipline: diff `dckl --help` against SKILL.md line by line.
+updated: '2026-04-23T14:51:24.161Z'
 ---
 
 ## DCK-16: SKILL.md + CLAUDE.md reality refresh

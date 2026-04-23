@@ -2,6 +2,16 @@
 
 ## 2026-04-23
 
+- **16:51** · `DCK-16` · status `in_progress` → `done`
+
+- **16:51** · `DCK-16` · test `no-planned-markers` → checked
+
+- **16:51** · `DCK-16` · test `anti-patterns-updated` → checked
+
+- **16:51** · `DCK-16` · test `command-table-accurate` → checked
+
+- **16:51** · `DCK-16` · test `no-stale-workarounds` → checked
+
 - **16:48** · `DCK-11` · status `in_progress` → `done`
 
 - **16:48** · `DCK-11` · reminder `input-validation` → checked
