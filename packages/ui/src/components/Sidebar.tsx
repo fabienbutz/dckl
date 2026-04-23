@@ -1,4 +1,6 @@
 import type { Config, JourneyMeta, SprintMeta } from "@dckl/server/schema";
+
+type SidebarSprint = SprintMeta & { live?: boolean };
 import { AnimatePresence, motion } from "framer-motion";
 import {
   BookOpen,
@@ -18,7 +20,7 @@ export type BrowseView = "changelog" | "stack" | "pages" | "journey";
 
 type Props = {
   config: Config | null;
-  sprints: SprintMeta[];
+  sprints: SidebarSprint[];
   activeSprintId: string | null;
   onSelectSprint: (id: string) => void;
   activeView: BrowseView | null;
@@ -49,11 +51,15 @@ export function Sidebar({
   const journeys = useJourneys();
   const stack = useStackInventory();
   const sorted = [...sprints].sort((a, b) => {
+    // Live sprints (declared active or detected active via task
+    // heartbeat / in-progress) float to the top regardless of the
+    // declared status. Prevents `status: planning + tasks in flight`
+    // from buried-in-the-middle.
+    const aLive = a.status === "active" || a.live === true;
+    const bLive = b.status === "active" || b.live === true;
+    if (aLive !== bLive) return aLive ? -1 : 1;
     const diff = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
     if (diff !== 0) return diff;
-    // Ascending within status so `sprint-00 → 01 → 02` reads in the
-    // order the user wrote them. Descending was counter-intuitive the
-    // first time more than one sprint existed.
     return a.id.localeCompare(b.id);
   });
 
@@ -90,7 +96,10 @@ export function Sidebar({
                       : "text-text-secondary hover:bg-surface-hover hover:text-text-primary",
                   )}
                 >
-                  <StatusDot status={sprint.status} />
+                  <StatusDot
+                    status={sprint.status}
+                    live={sprint.live === true}
+                  />
                   <span className="flex-1 truncate" title={sprint.name}>
                     {displaySprintName(sprint)}
                   </span>
@@ -328,14 +337,20 @@ function displaySprintName(sprint: SprintMeta): string {
   return num ? `${num} · ${label}` : label;
 }
 
-function StatusDot({ status }: { status: SprintMeta["status"] }) {
-  // `active` uses amber — same accent that signals "work in progress"
-  // on task-level (fresh claim pulse). Sprint `active` is the sprint
-  // analogue, so the amber rule extends consistently. Everything else
-  // stays monochrome.
+function StatusDot({
+  status,
+  live,
+}: {
+  status: SprintMeta["status"];
+  live?: boolean;
+}) {
+  // Amber means "work in progress". Either declared (`status: active`)
+  // or derived (`live: true` — some task has an in-progress status or
+  // a fresh claim heartbeat). Everything else stays monochrome.
+  if (status === "active" || live === true) {
+    return <span className="w-[6px] h-[6px] rounded-full bg-accent shrink-0" />;
+  }
   switch (status) {
-    case "active":
-      return <span className="w-[6px] h-[6px] rounded-full bg-accent shrink-0" />;
     case "planning":
       return (
         <span className="w-[6px] h-[6px] rounded-full border border-text-tertiary shrink-0" />

@@ -126,7 +126,8 @@ export const api = {
   getJourney: (id: string) => request<Journey>(`/api/journeys/${encodeURIComponent(id)}`),
   getSecurityTemplates: () =>
     request<SecurityCheckTemplates>("/api/templates/security-checks"),
-  getSprints: () => request<{ sprints: SprintMeta[] }>("/api/sprints"),
+  getSprints: () =>
+    request<{ sprints: Array<SprintMeta & { live?: boolean }> }>("/api/sprints"),
   getSprint: (id: string) => request<Sprint>(`/api/sprints/${encodeURIComponent(id)}`),
   getSprintCommits: (id: string) =>
     request<{ commits: Record<string, CommitRef[]> }>(
