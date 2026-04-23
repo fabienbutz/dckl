@@ -9,7 +9,8 @@ import { SprintMeta, TaskMeta } from "../schema/index.js";
 // schemas treat all dates as ISO strings.
 const GRAY_MATTER_OPTIONS = {
   engines: {
-    yaml: (str: string) => yaml.load(str, { schema: yaml.JSON_SCHEMA }),
+    yaml: (str: string): object =>
+      (yaml.load(str, { schema: yaml.JSON_SCHEMA }) ?? {}) as object,
   },
 };
 

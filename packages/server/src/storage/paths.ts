@@ -27,6 +27,7 @@ export type DeckelPaths = {
   trash: string;
   ignoreFile: string;
   portFile: string;
+  vision: string;
 };
 
 export function deckelPaths(root: string): DeckelPaths {
@@ -38,6 +39,7 @@ export function deckelPaths(root: string): DeckelPaths {
     trash: resolve(root, ".trash"),
     ignoreFile: resolve(root, ".deckelignore"),
     portFile: resolve(root, ".port"),
+    vision: resolve(root, "VISION.md"),
   };
 }
 
