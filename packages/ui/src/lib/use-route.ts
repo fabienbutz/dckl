@@ -11,6 +11,7 @@ export type Route =
   | { kind: "sprint"; sprintId: string }
   | { kind: "sprint-briefing"; sprintId: string }
   | { kind: "task"; sprintId: string; taskId: string }
+  | { kind: "journeys-list" }
   | { kind: "journey"; journeyId: string }
   | { kind: "pages" }
   | { kind: "stack"; path: string | null }
@@ -39,7 +40,8 @@ export function parseHash(hash: string): Route {
     }
     return { kind: "sprint", sprintId };
   }
-  if (parts[0] === "journeys" && parts[1]) {
+  if (parts[0] === "journeys") {
+    if (!parts[1]) return { kind: "journeys-list" };
     return { kind: "journey", journeyId: parts[1] };
   }
   if (parts[0] === "pages") return { kind: "pages" };
@@ -65,6 +67,8 @@ export function toHash(route: Route): string {
       return `#/sprints/${encodeURIComponent(route.sprintId)}/briefing`;
     case "task":
       return `#/sprints/${encodeURIComponent(route.sprintId)}/tasks/${encodeURIComponent(route.taskId)}`;
+    case "journeys-list":
+      return "#/journeys";
     case "journey":
       return `#/journeys/${encodeURIComponent(route.journeyId)}`;
     case "pages":

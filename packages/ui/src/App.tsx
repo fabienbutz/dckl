@@ -5,6 +5,7 @@ import { useEffect, useMemo } from "react";
 import { ChangelogView } from "./components/ChangelogView.js";
 import { EmptyState } from "./components/EmptyState.js";
 import { ErrorBoundary } from "./components/ErrorBoundary.js";
+import { JourneysListView } from "./components/JourneysListView.js";
 import { JourneyView } from "./components/JourneyView.js";
 import { PagesView } from "./components/PagesView.js";
 import { Sidebar } from "./components/Sidebar.js";
@@ -114,21 +115,7 @@ function AppInner() {
         <Sidebar
           config={config.data?.data ?? null}
           sprints={sprints.data ?? []}
-          activeSprintId={activeSprintId}
-          onSelectSprint={(id) => navigate({ kind: "sprint", sprintId: id })}
-          activeView={viewFromRoute(route)}
-          onSelectView={(v) => {
-            // `null` is a legacy "clear browse-view" side-effect from the
-            // pre-router Sidebar — it fires alongside onSelectSprint(…)
-            // on every sprint click. In URL mode the sprint navigate
-            // already switches the view, so this must be a no-op; if we
-            // navigated here too it would race the sprint click.
-            if (v === "changelog") navigate({ kind: "changelog" });
-            else if (v === "stack") navigate({ kind: "stack", path: null });
-            else if (v === "pages") navigate({ kind: "pages" });
-          }}
-          activeJourneyId={activeJourneyId}
-          onSelectJourney={(id) => navigate({ kind: "journey", journeyId: id })}
+          route={route}
           collapsed={sidebarCollapsed}
         />
         <div className="flex-1 min-w-0">
@@ -148,6 +135,11 @@ function AppInner() {
           ) : route.kind === "pages" ? (
             <PagesView
               onSelectFile={(file) => navigate({ kind: "stack", path: file })}
+            />
+          ) : route.kind === "journeys-list" ? (
+            <JourneysListView
+              sidebarCollapsed={sidebarCollapsed}
+              onToggleSidebar={toggleSidebar}
             />
           ) : route.kind === "sprint-briefing" ? (
             <SprintBriefingView
@@ -226,21 +218,6 @@ function routeSprintId(route: Route): string | null {
     case "task":
     case "sprint-briefing":
       return route.sprintId;
-    default:
-      return null;
-  }
-}
-
-function viewFromRoute(route: Route): "changelog" | "stack" | "pages" | "journey" | null {
-  switch (route.kind) {
-    case "changelog":
-      return "changelog";
-    case "stack":
-      return "stack";
-    case "pages":
-      return "pages";
-    case "journey":
-      return "journey";
     default:
       return null;
   }
