@@ -21,6 +21,8 @@ task_ids:
   - DCK-21
   - DCK-22
   - DCK-23
+  - DCK-24
+  - DCK-25
 ---
 
 ## Sprint 03 — Dogfood polish
