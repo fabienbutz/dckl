@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { AlertTriangle, Loader2, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { cn } from "../lib/cn.js";
 import { useSprint } from "../lib/queries.js";
+import { SprintBriefing } from "./SprintBriefing.js";
 import { ROW_GRID, TaskRow, type TaskRowData } from "./TaskRow.js";
 
 type Props = {
@@ -51,8 +52,9 @@ export function SprintBoard({
     );
   }
 
-  const meta = sprint.data?.data.meta;
-  if (!meta) return null;
+  const sprintData = sprint.data?.data;
+  const meta = sprintData?.meta;
+  if (!sprintData || !meta) return null;
 
   return (
     <div className="h-full flex flex-col">
@@ -79,6 +81,8 @@ export function SprintBoard({
       </div>
 
       <div className="flex-1 overflow-auto">
+        <SprintBriefing sprint={sprintData} />
+
         <div
           className={cn(
             "grid items-center h-[44px] px-8 border-b border-border-subtle text-label text-text-tertiary",

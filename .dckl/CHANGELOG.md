@@ -2,6 +2,16 @@
 
 ## 2026-04-23
 
+- **20:31** · `DCK-23` · status `in_progress` → `done`
+
+- **20:31** · `DCK-23` · test `empty-graceful` → checked
+
+- **20:31** · `DCK-23` · test `metadata-line` → checked
+
+- **20:31** · `DCK-23` · test `collapsible` → checked
+
+- **20:31** · `DCK-23` · test `body-rendered` → checked
+
 - **20:30** · `DCK-21` · status `in_progress` → `done`
 
 - **20:30** · `DCK-21` · test `api-endpoint` → checked
