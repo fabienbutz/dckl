@@ -117,12 +117,14 @@ function AppInner() {
           onSelectSprint={(id) => navigate({ kind: "sprint", sprintId: id })}
           activeView={viewFromRoute(route)}
           onSelectView={(v) => {
+            // `null` is a legacy "clear browse-view" side-effect from the
+            // pre-router Sidebar — it fires alongside onSelectSprint(…)
+            // on every sprint click. In URL mode the sprint navigate
+            // already switches the view, so this must be a no-op; if we
+            // navigated here too it would race the sprint click.
             if (v === "changelog") navigate({ kind: "changelog" });
             else if (v === "stack") navigate({ kind: "stack", path: null });
             else if (v === "pages") navigate({ kind: "pages" });
-            else if (v === null && activeSprintId) {
-              navigate({ kind: "sprint", sprintId: activeSprintId });
-            }
           }}
           activeJourneyId={activeJourneyId}
           onSelectJourney={(id) => navigate({ kind: "journey", journeyId: id })}
