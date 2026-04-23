@@ -113,12 +113,7 @@ function scaffoldWelcomeSprint(dcklDir: string, prefix: string): void {
   const tasksDir = join(sprintDir, "tasks");
   mkdirSync(tasksDir, { recursive: true });
 
-  const today = new Date().toISOString().slice(0, 10);
-  const weekLater = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-    .toISOString()
-    .slice(0, 10);
-
-  writeFileSync(join(sprintDir, "index.md"), renderStarterSprint(prefix, today, weekLater));
+  writeFileSync(join(sprintDir, "index.md"), renderStarterSprint(prefix));
   writeFileSync(join(tasksDir, `${prefix}-01.md`), renderStarterTask01(prefix));
   writeFileSync(join(tasksDir, `${prefix}-02.md`), renderStarterTask02(prefix));
   writeFileSync(join(tasksDir, `${prefix}-03.md`), renderStarterTask03(prefix));

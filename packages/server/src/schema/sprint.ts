@@ -16,8 +16,11 @@ export const SprintMeta = v.object({
   name: v.pipe(v.string(), v.minLength(1)),
   goal: v.string(),
   status: SprintStatus,
-  start: DateString,
-  end: DateString,
+  // Optional: a sprint in dckl is scope-bound, not time-bound. Fields
+  // are kept in the schema so legacy sprint files still parse, but the
+  // UI no longer renders them and `init` no longer scaffolds them.
+  start: v.optional(DateString),
+  end: v.optional(DateString),
   based_on: v.nullable(v.string()),
   task_ids: v.array(v.string()),
 });

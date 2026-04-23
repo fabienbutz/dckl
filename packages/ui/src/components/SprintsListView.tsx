@@ -1,6 +1,6 @@
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
-import { cn } from "../lib/cn.js";
 import type { SprintListItem } from "../lib/api.js";
+import { cn } from "../lib/cn.js";
 import { navigate } from "../lib/use-route.js";
 
 type Props = {
@@ -47,7 +47,6 @@ export function SprintsListView({ sprints, sidebarCollapsed, onToggleSidebar }: 
               <th className="text-left font-normal px-6 py-3 w-[16px]" />
               <th className="text-left font-normal py-3">Name</th>
               <th className="text-left font-normal px-4 py-3 w-[110px]">Status</th>
-              <th className="text-left font-normal px-4 py-3 w-[190px]">Window</th>
               <th className="text-right font-normal px-4 py-3 w-[110px] tabular-nums">Tasks</th>
               <th className="text-right font-normal px-4 py-3 w-[90px] tabular-nums">Corr</th>
               <th className="text-right font-normal px-6 py-3 w-[70px]">Live</th>
@@ -87,15 +86,9 @@ export function SprintsListView({ sprints, sidebarCollapsed, onToggleSidebar }: 
                   </td>
                   <td className="py-3 text-text-primary">
                     <div className="truncate max-w-[520px]">{sprint.name}</div>
-                    <div className="text-label text-text-tertiary font-mono tabular-nums">
-                      {sprint.id}
-                    </div>
                   </td>
                   <td className="px-4 py-3 text-text-secondary capitalize">
                     {sprint.status}
-                  </td>
-                  <td className="px-4 py-3 text-text-tertiary tabular-nums">
-                    {formatWindow(sprint.start, sprint.end)}
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums text-text-secondary">
                     {done}/{total}
@@ -121,15 +114,3 @@ export function SprintsListView({ sprints, sidebarCollapsed, onToggleSidebar }: 
   );
 }
 
-function formatWindow(start?: string, end?: string): string {
-  const s = fmt(start);
-  const e = fmt(end);
-  if (s && e) return `${s} → ${e}`;
-  return s || e || "";
-}
-
-function fmt(v: unknown): string {
-  if (!v) return "";
-  if (v instanceof Date) return v.toISOString().slice(0, 10);
-  return String(v).slice(0, 10);
-}

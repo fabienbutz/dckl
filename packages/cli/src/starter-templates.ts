@@ -9,15 +9,13 @@
  * through it. That instruction is in the sprint body.
  */
 
-export function renderStarterSprint(prefix: string, today: string, weekLater: string): string {
+export function renderStarterSprint(prefix: string): string {
   return `---
 schema: 1
 id: sprint-00-welcome
-name: Welcome — try dckl on itself
+name: dckl Onboarding
 goal: Three tiny tasks that teach the core mechanics. Delete this sprint when you're done.
 status: active
-start: ${today}
-end: ${weekLater}
 based_on: null
 task_ids:
   - ${prefix}-01

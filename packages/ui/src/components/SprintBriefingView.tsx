@@ -103,14 +103,6 @@ export function SprintBriefingView({ sprintId, sidebarCollapsed, onToggleSidebar
         <dl className="grid grid-cols-[100px_1fr] gap-y-2 gap-x-4 mb-8 text-body">
           <dt className="text-text-tertiary font-mono text-label">status</dt>
           <dd className="text-text-primary capitalize">{meta.status}</dd>
-          {(meta.start || meta.end) && (
-            <>
-              <dt className="text-text-tertiary font-mono text-label">window</dt>
-              <dd className="text-text-primary tabular-nums">
-                {formatDate(meta.start)} → {formatDate(meta.end)}
-              </dd>
-            </>
-          )}
           {meta.based_on && (
             <>
               <dt className="text-text-tertiary font-mono text-label">based on</dt>
@@ -140,8 +132,3 @@ export function SprintBriefingView({ sprintId, sidebarCollapsed, onToggleSidebar
   );
 }
 
-function formatDate(v: unknown): string {
-  if (!v) return "?";
-  if (v instanceof Date) return v.toISOString().slice(0, 10);
-  return String(v).slice(0, 10);
-}
