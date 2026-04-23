@@ -11,5 +11,19 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    // Dev-only proxy. When running `pnpm dev`, Vite serves the React app on
+    // :5173 with hot-reload, but our API (including SSE at /api/events) lives
+    // on the deckel CLI server. Forward every /api/* request to whichever
+    // port deckel is listening on — defaults to 4321.
+    proxy: {
+      "/api": {
+        target: "http://localhost:4321",
+        changeOrigin: true,
+        // Pass-through for SSE: http-proxy's default is to stream, but some
+        // intermediate buffering can delay events. Explicit `selfHandleResponse:
+        // false` (the default) keeps the stream flowing.
+        ws: false,
+      },
+    },
   },
 });
