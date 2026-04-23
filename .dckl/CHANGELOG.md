@@ -2,6 +2,18 @@
 
 ## 2026-04-23
 
+- **20:45** · `DCK-24` · status `in_progress` → `done`
+
+- **20:45** · `DCK-24` · test `fallback` → checked
+
+- **20:45** · `DCK-24` · test `browser-back` → checked
+
+- **20:45** · `DCK-24` · test `view-urls` → checked
+
+- **20:45** · `DCK-24` · test `task-url` → checked
+
+- **20:45** · `DCK-24` · test `sprint-url` → checked
+
 - **20:34** · `DCK-22` · status `in_progress` → `done`
 
 - **20:34** · `DCK-22` · reminder `input-validation` → checked

@@ -2,39 +2,38 @@
 schema: 1
 id: DCK-24
 sprint_id: sprint-03-polish
-title: "URL-Routing: dckl wird von SPA-State zu bookmark-baren Routen"
+title: 'URL-Routing: dckl wird von SPA-State zu bookmark-baren Routen'
 type: feature
-status: todo
+status: done
 security_checks: []
 test_criteria:
   - id: sprint-url
-    working: false
     label: >-
       Klick auf einen Sprint in der Sidebar ändert die URL zu
-      `#/sprints/:sprintId`. Direkter Aufruf dieser URL zeigt den
-      Sprint ohne weitere Klicks.
-    checked: false
+      `#/sprints/:sprintId`. Direkter Aufruf dieser URL zeigt den Sprint ohne
+      weitere Klicks.
+    checked: true
   - id: task-url
     label: >-
       Klick auf eine Task-Row ändert die URL zu
-      `#/sprints/:sprintId/tasks/:taskId` und öffnet den Drawer.
-      Direct-URL öffnet den Drawer bei Pageload.
-    checked: false
+      `#/sprints/:sprintId/tasks/:taskId` und öffnet den Drawer. Direct-URL
+      öffnet den Drawer bei Pageload.
+    checked: true
   - id: view-urls
     label: >-
-      `#/changelog`, `#/stack`, `#/stack/:path`, `#/pages`,
-      `#/journeys/:id` führen direkt zur jeweiligen View.
-    checked: false
+      `#/changelog`, `#/stack`, `#/stack/:path`, `#/pages`, `#/journeys/:id`
+      führen direkt zur jeweiligen View.
+    checked: true
   - id: browser-back
     label: >-
-      Browser-Back navigiert durch die besuchten Routen. Forward
-      funktioniert analog. Kein Full-Page-Reload.
-    checked: false
+      Browser-Back navigiert durch die besuchten Routen. Forward funktioniert
+      analog. Kein Full-Page-Reload.
+    checked: true
   - id: fallback
     label: >-
-      Unbekannte Hash-Routen fallen auf den aktiven Sprint zurück.
-      Keine weiße Seite, kein Crash.
-    checked: false
+      Unbekannte Hash-Routen fallen auf den aktiven Sprint zurück. Keine weiße
+      Seite, kein Crash.
+    checked: true
 corrections: []
 context_files:
   - packages/ui/src/lib/use-route.ts
@@ -47,12 +46,13 @@ depends_on:
   - DCK-18
 pre_flight:
   - >-
-    Kein React-Router als Dependency — dckl ist ein lokales Tool,
-    hash-basiertes Routing in ~40 Zeilen reicht. Bundle bleibt klein.
+    Kein React-Router als Dependency — dckl ist ein lokales Tool, hash-basiertes
+    Routing in ~40 Zeilen reicht. Bundle bleibt klein.
   - >-
-    Existing state hooks (`activeSprintId`, `selectedTaskId`,
-    `activeView`, `activeStackPath`, `activeJourneyId`) werden durch
-    den Route-Reader ersetzt. Setter werden zu URL-Navigations.
+    Existing state hooks (`activeSprintId`, `selectedTaskId`, `activeView`,
+    `activeStackPath`, `activeJourneyId`) werden durch den Route-Reader ersetzt.
+    Setter werden zu URL-Navigations.
+updated: '2026-04-23T18:45:01.485Z'
 ---
 
 ## Worum es geht

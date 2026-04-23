@@ -1,13 +1,13 @@
 import type { TaskMeta } from "@dckl/server/schema";
 import { useQueries } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { ChangelogView } from "./components/ChangelogView.js";
 import { EmptyState } from "./components/EmptyState.js";
 import { ErrorBoundary } from "./components/ErrorBoundary.js";
 import { JourneyView } from "./components/JourneyView.js";
 import { PagesView } from "./components/PagesView.js";
-import { type BrowseView, Sidebar } from "./components/Sidebar.js";
+import { Sidebar } from "./components/Sidebar.js";
 import { SprintBoard } from "./components/SprintBoard.js";
 import { StackView } from "./components/StackView.js";
 import { TaskDrawer } from "./components/TaskDrawer.js";
@@ -15,6 +15,7 @@ import { ApiError } from "./lib/api.js";
 import { api } from "./lib/api.js";
 import { useConfig, usePatchTask, useSprints } from "./lib/queries.js";
 import { useLiveUpdates } from "./lib/use-live-updates.js";
+import { type Route, navigate, useRoute } from "./lib/use-route.js";
 import { useSidebarState } from "./lib/use-sidebar-state.js";
 
 export function App() {
@@ -29,21 +30,33 @@ function AppInner() {
   useLiveUpdates();
   const config = useConfig();
   const sprints = useSprints();
-  const [activeSprintId, setActiveSprintId] = useState<string | null>(null);
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
-  const [activeView, setActiveView] = useState<BrowseView | null>(null);
-  const [activeJourneyId, setActiveJourneyId] = useState<string | null>(null);
-  const [activeStackPath, setActiveStackPath] = useState<string | null>(null);
+  const route = useRoute();
   const patch = usePatchTask();
   const { collapsed: sidebarCollapsed, toggle: toggleSidebar } = useSidebarState();
 
-  // Auto-select the first sprint whose status is active; fall back to the
-  // first sprint in the list.
+  // Derive the "currently focused sprint" from the route. For sprint-
+  // scoped routes (sprint, task, briefing) the answer is obvious; for
+  // everything else (changelog, stack, pages, journey) we fall back to
+  // the active sprint so the sidebar keeps its highlight and the task
+  // cache stays warm.
+  const fallbackSprintId = useMemo(() => {
+    if (!sprints.data || sprints.data.length === 0) return null;
+    return (
+      sprints.data.find((s) => s.status === "active")?.id ??
+      sprints.data[0]?.id ??
+      null
+    );
+  }, [sprints.data]);
+
+  const activeSprintId = routeSprintId(route) ?? fallbackSprintId;
+
+  // Auto-redirect home → active sprint once sprints load. replaceState
+  // so browser-back does not bounce between `#/` and `#/sprints/:id`.
   useEffect(() => {
-    if (activeSprintId || !sprints.data) return;
-    const active = sprints.data.find((s) => s.status === "active") ?? sprints.data[0];
-    if (active) setActiveSprintId(active.id);
-  }, [sprints.data, activeSprintId]);
+    if (route.kind !== "home") return;
+    if (!fallbackSprintId) return;
+    navigate({ kind: "sprint", sprintId: fallbackSprintId }, { replace: true });
+  }, [route, fallbackSprintId]);
 
   const taskQueries = useQueries({
     queries: useMemo(() => {
@@ -53,9 +66,6 @@ function AppInner() {
       return sprint.task_ids.map((taskId) => ({
         queryKey: ["task", activeSprintId, taskId] as const,
         queryFn: () => api.getTask(activeSprintId, taskId),
-        // Live updates via SSE (useLiveUpdates) invalidate on real events.
-        // A longer stale-time reduces noise; the 30s fallback is a safety
-        // net in case a reconnect misses an event.
         refetchInterval: 30_000,
         staleTime: 5_000,
       }));
@@ -75,7 +85,7 @@ function AppInner() {
       <EmptyState
         title="No .dckl/ in this directory"
         description="Scaffold one so dckl knows where to read and write sprints and tasks."
-        command="pnpm dckl init"
+        command="dckl init"
       />
     );
   }
@@ -86,12 +96,15 @@ function AppInner() {
     return (
       <EmptyState
         title="No sprints yet"
-        description="Add a sprint folder under .dckl/sprints/ with an index.md to see it here. Sprint creation from the UI lands in Sprint 3."
+        description="Add a sprint folder under .dckl/sprints/ with an index.md to see it here."
       />
     );
   }
 
-  const showDrawer = Boolean(activeSprintId && selectedTaskId);
+  const selectedTaskId = route.kind === "task" ? route.taskId : null;
+  const showDrawer = Boolean(route.kind === "task" && activeSprintId && selectedTaskId);
+  const activeJourneyId = route.kind === "journey" ? route.journeyId : null;
+  const activeStackPath = route.kind === "stack" ? route.path : null;
 
   return (
     <div className="min-h-screen">
@@ -100,46 +113,42 @@ function AppInner() {
           config={config.data?.data ?? null}
           sprints={sprints.data ?? []}
           activeSprintId={activeSprintId}
-          onSelectSprint={(id) => {
-            setActiveSprintId(id);
-            setSelectedTaskId(null);
-            setActiveView(null);
-          }}
-          activeView={activeView}
+          onSelectSprint={(id) => navigate({ kind: "sprint", sprintId: id })}
+          activeView={viewFromRoute(route)}
           onSelectView={(v) => {
-            setActiveView(v);
-            if (v !== "journey") setActiveJourneyId(null);
+            if (v === "changelog") navigate({ kind: "changelog" });
+            else if (v === "stack") navigate({ kind: "stack", path: null });
+            else if (v === "pages") navigate({ kind: "pages" });
+            else if (v === null && activeSprintId) {
+              navigate({ kind: "sprint", sprintId: activeSprintId });
+            }
           }}
           activeJourneyId={activeJourneyId}
-          onSelectJourney={(id) => {
-            setActiveJourneyId(id);
-            setActiveView("journey");
-          }}
+          onSelectJourney={(id) => navigate({ kind: "journey", journeyId: id })}
           collapsed={sidebarCollapsed}
         />
         <div className="flex-1 min-w-0">
-          {activeView === "changelog" ? (
+          {route.kind === "changelog" ? (
             <ChangelogView />
-          ) : activeView === "stack" ? (
+          ) : route.kind === "stack" ? (
             <StackView
               activePath={activeStackPath}
-              onSelectPath={setActiveStackPath}
+              onSelectPath={(p) => navigate({ kind: "stack", path: p })}
             />
-          ) : activeView === "pages" ? (
+          ) : route.kind === "pages" ? (
             <PagesView
-              onSelectFile={(file) => {
-                setActiveStackPath(file);
-                setActiveView("stack");
-              }}
+              onSelectFile={(file) => navigate({ kind: "stack", path: file })}
             />
-          ) : activeView === "journey" && activeJourneyId ? (
+          ) : route.kind === "journey" && activeJourneyId ? (
             <JourneyView journeyId={activeJourneyId} />
           ) : (
             activeSprintId && (
               <SprintBoard
                 sprintId={activeSprintId}
                 selectedTaskId={selectedTaskId}
-                onSelectTask={(id) => setSelectedTaskId(id)}
+                onSelectTask={(id) =>
+                  navigate({ kind: "task", sprintId: activeSprintId, taskId: id })
+                }
                 onStatusCycle={(task, next) =>
                   patch.mutate({
                     sprintId: activeSprintId,
@@ -177,12 +186,12 @@ function AppInner() {
                     <TaskDrawer
                       sprintId={activeSprintId}
                       taskId={selectedTaskId}
-                      onClose={() => setSelectedTaskId(null)}
-                      onOpenDoc={(path) => {
-                        setActiveStackPath(path);
-                        setActiveView("stack");
-                        setSelectedTaskId(null);
-                      }}
+                      onClose={() =>
+                        navigate({ kind: "sprint", sprintId: activeSprintId })
+                      }
+                      onOpenDoc={(path) =>
+                        navigate({ kind: "stack", path })
+                      }
                     />
                   </motion.div>
                 </AnimatePresence>
@@ -193,4 +202,30 @@ function AppInner() {
       </main>
     </div>
   );
+}
+
+function routeSprintId(route: Route): string | null {
+  switch (route.kind) {
+    case "sprint":
+    case "task":
+    case "sprint-briefing":
+      return route.sprintId;
+    default:
+      return null;
+  }
+}
+
+function viewFromRoute(route: Route): "changelog" | "stack" | "pages" | "journey" | null {
+  switch (route.kind) {
+    case "changelog":
+      return "changelog";
+    case "stack":
+      return "stack";
+    case "pages":
+      return "pages";
+    case "journey":
+      return "journey";
+    default:
+      return null;
+  }
 }
