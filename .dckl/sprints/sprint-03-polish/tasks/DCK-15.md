@@ -47,37 +47,42 @@ pre_flight:
 updated: '2026-04-23T14:43:34.058Z'
 ---
 
-## DCK-15: `dckl sprint close <id>`
+## Worum es geht
 
-Closing a sprint by hand took ~10 commands today. Formalize it.
+Ein End-to-End-Befehl, der einen Sprint sauber abschließt:
 
-### Why
+1. Validieren: alle Tasks `status: done` — sonst Abbruch, außer
+   `--force`.
+2. Summary berechnen: Task-Counts, Corrections, Window, Changelog-
+   Ausschnitt.
+3. `SUMMARY.md` in den Sprint-Ordner schreiben.
+4. `status: done` im Sprint-`index.md` setzen.
+5. Ordner nach `.dckl/sprints/.archive/<id>/` verschieben (atomarer
+   `renameSync`).
+6. `.active-task` leeren, wenn es auf diesen Sprint zeigte.
+7. Zeile in `.dckl/CHANGELOG.md` anhängen.
 
-A sprint close is a real event — it's when the work should be
-reflected on, when corrections get triaged forward, when the
-CHANGELOG gets a summary header. If it takes 10 commands, it does not
-happen; if it happens inconsistently, `.archive/` becomes useless.
+`--dry-run` zeigt den Plan, ohne zu schreiben.
 
-### Semantics
+## Warum jetzt
+
+Sprint-02 wurde von Hand geschlossen — ca. 10 PATCHes, `.active-task`
+blieb stale, keine Summary geschrieben. Ein Close ist ein echtes
+Ereignis (Reflektion, Carryover von Corrections, Changelog-Header).
+Wenn es 10 Befehle kostet, wird es einfach nicht gemacht — und
+`.archive/` wird bedeutungslos.
+
+## CLI-Signatur
 
 ```
-dckl sprint close sprint-02-dogfood
-dckl sprint close sprint-02-dogfood --force    # allow non-done tasks
-dckl sprint close sprint-02-dogfood --dry-run  # print the plan, no writes
+dckl sprint close sprint-99-foo
+dckl sprint close sprint-99-foo --force     # trotz offener Tasks
+dckl sprint close sprint-99-foo --dry-run   # nur Plan drucken
 ```
 
-Does, in order:
-1. Validate: all tasks done (unless `--force`).
-2. Compute summary: task count, open/resolved corrections, date range,
-   related changelog lines.
-3. Write `SUMMARY.md` into the sprint folder.
-4. Set sprint `status: done`.
-5. Move folder → `.archive/`.
-6. Clear `.active-task` if it pointed into this sprint.
-7. Append a header entry to `.dckl/CHANGELOG.md`.
+## Out of scope
 
-### Out of scope
-
-- `sprint open` (create a new sprint). Separate command if ever needed.
-- Auto-carryover of incomplete tasks to the next sprint.
-- UI confirmation dialogue — CLI-only for now.
+- `sprint open` (neuen Sprint anlegen). Eigener Befehl bei Bedarf.
+- Auto-Carryover offener Tasks in den nächsten Sprint. Menschliche
+  Entscheidung.
+- UI-Bestätigungsdialog. CLI-only für jetzt.
