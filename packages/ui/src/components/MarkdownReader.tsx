@@ -107,7 +107,7 @@ export function MarkdownReader({ path, label }: Props) {
           </div>
         )}
 
-        <article className="prose-deckel">
+        <article className="prose-dckl">
           <ReactMarkdown remarkPlugins={[remarkGfm]} components={MD_COMPONENTS}>
             {body}
           </ReactMarkdown>

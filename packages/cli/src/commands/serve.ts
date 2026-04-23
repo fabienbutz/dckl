@@ -2,8 +2,8 @@ import { existsSync } from "node:fs";
 import type { Server } from "node:http";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { createApp } from "@deckel/server";
-import { findDeckelRoot } from "@deckel/server/storage";
+import { createApp } from "@dckl/server";
+import { findDcklRoot } from "@dckl/server/storage";
 import { serve } from "@hono/node-server";
 import type { Hono } from "hono";
 import { releasePortLock, suggestStartingPort, writePortLock } from "../port-discovery.js";
@@ -21,20 +21,20 @@ export async function runServe(options: ServeOptions = {}): Promise<void> {
   const uiDir = resolve(here, "ui");
 
   if (!existsSync(uiDir)) {
-    console.warn(`[deckel] UI assets not found at ${uiDir} — API-only mode.`);
+    console.warn(`[dckl] UI assets not found at ${uiDir} — API-only mode.`);
   }
 
-  const deckelRoot = findDeckelRoot(process.cwd());
-  if (!deckelRoot) {
-    console.warn("[deckel] No .deckel/ found — run `deckel init` to scaffold one.");
+  const dcklRoot = findDcklRoot(process.cwd());
+  if (!dcklRoot) {
+    console.warn("[dckl] No .dckl/ found — run `dckl init` to scaffold one.");
   }
 
-  const portFile = deckelRoot ? join(deckelRoot, ".port") : null;
+  const portFile = dcklRoot ? join(dcklRoot, ".port") : null;
   const startPort = suggestStartingPort(portFile, options.port ?? DEFAULT_PORT);
 
   const { app, csrfToken } = createApp({
     uiDir: existsSync(uiDir) ? uiDir : undefined,
-    deckelRoot: deckelRoot ?? undefined,
+    dcklRoot: dcklRoot ?? undefined,
     noMemory: options.noMemory,
   });
 
@@ -56,7 +56,7 @@ export async function runServe(options: ServeOptions = {}): Promise<void> {
   process.on("SIGINT", shutdown);
   process.on("SIGTERM", shutdown);
 
-  console.log(`deckel listening on http://localhost:${port}`);
+  console.log(`dckl listening on http://localhost:${port}`);
   console.log(`  token: ${csrfToken}`);
   if (options.noMemory) {
     console.log("  memory scanner: disabled (--no-memory)");

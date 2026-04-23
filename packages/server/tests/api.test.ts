@@ -10,19 +10,19 @@ const TOKEN = "test-csrf-token";
 
 type Harness = {
   app: ReturnType<typeof createApp>["app"];
-  deckelRoot: string;
+  dcklRoot: string;
   cleanup: () => void;
 };
 
-function setupDeckel(): Harness {
-  const tmp = mkdtempSync(join(tmpdir(), "deckel-api-"));
-  const deckelRoot = join(tmp, ".deckel");
-  mkdirSync(deckelRoot, { recursive: true });
-  mkdirSync(join(deckelRoot, "sprints", "sprint-01", "tasks"), { recursive: true });
-  mkdirSync(join(deckelRoot, ".trash"), { recursive: true });
+function setupdckl(): Harness {
+  const tmp = mkdtempSync(join(tmpdir(), "dckl-api-"));
+  const dcklRoot = join(tmp, ".dckl");
+  mkdirSync(dcklRoot, { recursive: true });
+  mkdirSync(join(dcklRoot, "sprints", "sprint-01", "tasks"), { recursive: true });
+  mkdirSync(join(dcklRoot, ".trash"), { recursive: true });
 
   writeFileSync(
-    join(deckelRoot, "config.yaml"),
+    join(dcklRoot, "config.yaml"),
     stringifyConfig({
       schema: 1,
       project: { name: "Test Project", created: "2026-04-22", version: 1 },
@@ -33,7 +33,7 @@ function setupDeckel(): Harness {
   );
 
   writeFileSync(
-    join(deckelRoot, "sprints", "sprint-01", "index.md"),
+    join(dcklRoot, "sprints", "sprint-01", "index.md"),
     stringifySprint({
       meta: {
         schema: 1,
@@ -51,7 +51,7 @@ function setupDeckel(): Harness {
   );
 
   writeFileSync(
-    join(deckelRoot, "sprints", "sprint-01", "tasks", "TSK-1.md"),
+    join(dcklRoot, "sprints", "sprint-01", "tasks", "TSK-1.md"),
     stringifyTask({
       meta: {
         schema: 1,
@@ -68,14 +68,14 @@ function setupDeckel(): Harness {
     }),
   );
 
-  const { app } = createApp({ deckelRoot, csrfToken: TOKEN });
-  return { app, deckelRoot, cleanup: () => rmSync(tmp, { recursive: true, force: true }) };
+  const { app } = createApp({ dcklRoot, csrfToken: TOKEN });
+  return { app, dcklRoot, cleanup: () => rmSync(tmp, { recursive: true, force: true }) };
 }
 
 describe("GET /api/config", () => {
   let h: Harness;
   beforeEach(() => {
-    h = setupDeckel();
+    h = setupdckl();
   });
   afterEach(() => h.cleanup());
 
@@ -91,7 +91,7 @@ describe("GET /api/config", () => {
 describe("GET /api/sprints", () => {
   let h: Harness;
   beforeEach(() => {
-    h = setupDeckel();
+    h = setupdckl();
   });
   afterEach(() => h.cleanup());
 
@@ -118,7 +118,7 @@ describe("GET /api/sprints", () => {
 describe("PATCH /api/sprints/:sid/tasks/:tid (ETag + CSRF)", () => {
   let h: Harness;
   beforeEach(() => {
-    h = setupDeckel();
+    h = setupdckl();
   });
   afterEach(() => h.cleanup());
 
@@ -144,7 +144,7 @@ describe("PATCH /api/sprints/:sid/tasks/:tid (ETag + CSRF)", () => {
     const res = await h.app.request("/api/sprints/sprint-01/tasks/TSK-1", {
       method: "PATCH",
       headers: {
-        "X-Deckel-Token": TOKEN,
+        "X-dckl-Token": TOKEN,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ status: "in_progress" }),
@@ -156,7 +156,7 @@ describe("PATCH /api/sprints/:sid/tasks/:tid (ETag + CSRF)", () => {
     const res = await h.app.request("/api/sprints/sprint-01/tasks/TSK-1", {
       method: "PATCH",
       headers: {
-        "X-Deckel-Token": TOKEN,
+        "X-dckl-Token": TOKEN,
         "If-Match": '"stale-etag-value-never-matches-anything"',
         "Content-Type": "application/json",
       },
@@ -170,7 +170,7 @@ describe("PATCH /api/sprints/:sid/tasks/:tid (ETag + CSRF)", () => {
     const res = await h.app.request("/api/sprints/sprint-01/tasks/TSK-1", {
       method: "PATCH",
       headers: {
-        "X-Deckel-Token": TOKEN,
+        "X-dckl-Token": TOKEN,
         "If-Match": etag,
         "Content-Type": "application/json",
       },
@@ -191,7 +191,7 @@ describe("PATCH /api/sprints/:sid/tasks/:tid (ETag + CSRF)", () => {
     const res = await h.app.request("/api/sprints/sprint-01/tasks/TSK-1", {
       method: "PATCH",
       headers: {
-        "X-Deckel-Token": TOKEN,
+        "X-dckl-Token": TOKEN,
         "If-Match": etag,
         "Content-Type": "application/json",
         Origin: "https://evil.example.com",
@@ -206,7 +206,7 @@ describe("PATCH /api/sprints/:sid/tasks/:tid (ETag + CSRF)", () => {
     const res = await h.app.request("/api/sprints/sprint-01/tasks/TSK-1", {
       method: "PATCH",
       headers: {
-        "X-Deckel-Token": TOKEN,
+        "X-dckl-Token": TOKEN,
         "If-Match": etag,
         "Content-Type": "application/json",
         Origin: "http://localhost:4321",

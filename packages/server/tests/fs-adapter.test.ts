@@ -18,7 +18,7 @@ describe("writeAtomic + readWithEtag", () => {
   let filePath: string;
 
   beforeEach(() => {
-    tmp = mkdtempSync(join(tmpdir(), "deckel-fs-"));
+    tmp = mkdtempSync(join(tmpdir(), "dckl-fs-"));
     trashDir = join(tmp, ".trash");
     filePath = join(tmp, "sprints", "sprint-01", "index.md");
   });

@@ -1,3 +1,0 @@
-# Additional glob patterns to exclude from deckel's inventory scan.
-# Built-ins (node_modules, .git, dist, build, coverage, .next, .turbo, .cache)
-# are always ignored.

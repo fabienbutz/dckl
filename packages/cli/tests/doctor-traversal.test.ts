@@ -23,9 +23,9 @@ describe("doctor — path traversal hardening", () => {
   let tmp: string;
 
   beforeEach(() => {
-    tmp = mkdtempSync(join(tmpdir(), "deckel-trav-"));
-    mkdirSync(join(tmp, ".deckel", "sprints"), { recursive: true });
-    writeFileSync(join(tmp, ".deckel", "config.yaml"), CONFIG);
+    tmp = mkdtempSync(join(tmpdir(), "dckl-trav-"));
+    mkdirSync(join(tmp, ".dckl", "sprints"), { recursive: true });
+    writeFileSync(join(tmp, ".dckl", "config.yaml"), CONFIG);
   });
 
   afterEach(() => {
@@ -34,7 +34,7 @@ describe("doctor — path traversal hardening", () => {
 
   it("rejects a .active-task with path-traversal in sprint_id", async () => {
     writeFileSync(
-      join(tmp, ".deckel", ".active-task"),
+      join(tmp, ".dckl", ".active-task"),
       JSON.stringify({ sprint_id: "../../../etc/passwd", task_id: "TSK-01" }),
     );
     const { findings } = await runDoctor({ cwd: tmp, silent: true });
@@ -45,7 +45,7 @@ describe("doctor — path traversal hardening", () => {
 
   it("rejects a .active-task with slashes in task_id", async () => {
     writeFileSync(
-      join(tmp, ".deckel", ".active-task"),
+      join(tmp, ".dckl", ".active-task"),
       JSON.stringify({ sprint_id: "sprint-01", task_id: "../../secrets" }),
     );
     const { findings } = await runDoctor({ cwd: tmp, silent: true });
@@ -54,7 +54,7 @@ describe("doctor — path traversal hardening", () => {
 
   it("rejects non-string values (boolean, number) in .active-task", async () => {
     writeFileSync(
-      join(tmp, ".deckel", ".active-task"),
+      join(tmp, ".dckl", ".active-task"),
       JSON.stringify({ sprint_id: 42, task_id: true }),
     );
     const { findings } = await runDoctor({ cwd: tmp, silent: true });

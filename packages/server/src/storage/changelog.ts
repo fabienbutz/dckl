@@ -17,18 +17,18 @@ const HEADER = "# Project History\n\n";
 const DAY_HEADER = /^## (\d{4}-\d{2}-\d{2})$/m;
 
 /**
- * Appends a changelog entry to .deckel/CHANGELOG.md, grouped by day. The file
+ * Appends a changelog entry to .dckl/CHANGELOG.md, grouped by day. The file
  * is never rewritten from scratch — existing entries stay exactly where the
  * user last saw them. A day header is inserted once per date; subsequent
  * events on the same date append underneath.
  */
 export async function appendChangelog(
-  deckelRoot: string,
+  dcklRoot: string,
   events: ChangelogEvent[],
 ): Promise<void> {
   if (events.length === 0) return;
 
-  const path = join(deckelRoot, "CHANGELOG.md");
+  const path = join(dcklRoot, "CHANGELOG.md");
   mkdirSync(dirname(path), { recursive: true });
 
   if (!existsSync(path)) {

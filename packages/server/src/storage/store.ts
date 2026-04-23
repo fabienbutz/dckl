@@ -22,7 +22,7 @@ import { etag } from "./etag.js";
 import { writeAtomic } from "./fs-adapter.js";
 import { parseJourney, stringifyJourney } from "./journey-io.js";
 import { parseSprint, parseTask, stringifyTask } from "./markdown.js";
-import { type DeckelPaths, deckelPaths, sprintDir, sprintIndexFile, taskFile } from "./paths.js";
+import { type DcklPaths, dcklPaths, sprintDir, sprintIndexFile, taskFile } from "./paths.js";
 import { readVisionIfPresent } from "./vision-io.js";
 
 export class StoreError extends Error {
@@ -36,11 +36,11 @@ export class StoreError extends Error {
 }
 
 export class Store {
-  readonly paths: DeckelPaths;
+  readonly paths: DcklPaths;
   private bus: EventBus | null = null;
 
-  constructor(deckelRoot: string) {
-    this.paths = deckelPaths(deckelRoot);
+  constructor(dcklRoot: string) {
+    this.paths = dcklPaths(dcklRoot);
   }
 
   /** Wire an event bus so Store writes fan out to SSE subscribers. */
@@ -50,7 +50,7 @@ export class Store {
 
   async getConfig(): Promise<{ config: Config; etag: string }> {
     if (!existsSync(this.paths.config)) {
-      throw new StoreError("NOT_FOUND", "config.yaml not found — run `deckel init`");
+      throw new StoreError("NOT_FOUND", "config.yaml not found — run `dckl init`");
     }
     return readConfig(this.paths.config);
   }
@@ -63,7 +63,7 @@ export class Store {
     return readSecurityTemplates(path);
   }
 
-  /** Read .deckel/VISION.md if it exists; null otherwise (optional file). */
+  /** Read .dckl/VISION.md if it exists; null otherwise (optional file). */
   async getVision(): Promise<Vision | null> {
     return readVisionIfPresent(this.paths.vision);
   }
@@ -85,7 +85,7 @@ export class Store {
         const content = await readFile(join(dir, entry), "utf8");
         metas.push(parseJourney(content).meta);
       } catch {
-        // Malformed journey file — surfaced via `deckel doctor` later.
+        // Malformed journey file — surfaced via `dckl doctor` later.
       }
     }
     metas.sort((a, b) => a.id.localeCompare(b.id));
@@ -231,7 +231,7 @@ export class Store {
     const events = diffTaskForChangelog(currentTask.meta, nextMeta);
     if (events.length > 0) {
       appendChangelog(this.paths.root, events).catch((err) => {
-        console.warn("[deckel] failed to append changelog:", err);
+        console.warn("[dckl] failed to append changelog:", err);
       });
     }
 
@@ -324,15 +324,15 @@ export class Store {
     return sprintDir(this.paths, id);
   }
 
-  /** Verifies the .deckel/ layout is present and looks valid. */
+  /** Verifies the .dckl/ layout is present and looks valid. */
   async doctor(): Promise<{ ok: boolean; issues: string[] }> {
     const issues: string[] = [];
-    if (!existsSync(this.paths.root)) issues.push("missing .deckel/");
-    if (!existsSync(this.paths.config)) issues.push("missing .deckel/config.yaml");
-    if (!existsSync(this.paths.sprints)) issues.push("missing .deckel/sprints/");
+    if (!existsSync(this.paths.root)) issues.push("missing .dckl/");
+    if (!existsSync(this.paths.config)) issues.push("missing .dckl/config.yaml");
+    if (!existsSync(this.paths.sprints)) issues.push("missing .dckl/sprints/");
     if (existsSync(this.paths.root)) {
       const s = await stat(this.paths.root);
-      if (!s.isDirectory()) issues.push(".deckel/ is not a directory");
+      if (!s.isDirectory()) issues.push(".dckl/ is not a directory");
     }
     return { ok: issues.length === 0, issues };
   }

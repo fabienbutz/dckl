@@ -4,7 +4,7 @@ import { CURRENT_SCHEMA } from "./config.js";
 /**
  * Project vision metadata — the anchor every sprint and chunk points back
  * to. Optional by design; projects can live without one. When present, it's
- * included in `deckel status` and `deckel export` so every Claude session
+ * included in `dckl status` and `dckl export` so every Claude session
  * starts with the project's north star in its context.
  */
 export const VisionMeta = v.object({

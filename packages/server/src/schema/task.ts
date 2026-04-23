@@ -24,7 +24,7 @@ export type TaskClaim = v.InferOutput<typeof TaskClaim>;
 export const CLAIM_TTL_MS = 5 * 60 * 1000;
 
 /**
- * Task frontmatter, stored at .deckel/sprints/<sprint-id>/tasks/<task-id>.md.
+ * Task frontmatter, stored at .dckl/sprints/<sprint-id>/tasks/<task-id>.md.
  * One file per task — the expert review flagged tasks-in-sprint-frontmatter as
  * the single biggest data-loss risk under parallel edits.
  */

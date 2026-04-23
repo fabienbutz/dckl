@@ -51,20 +51,20 @@ corrections: []
 `;
 
 function scaffold(tmp: string, withTaskFile = true): void {
-  const deckel = join(tmp, ".deckel");
-  mkdirSync(join(deckel, "sprints", "sprint-01", "tasks"), { recursive: true });
-  writeFileSync(join(deckel, "config.yaml"), MIN_CONFIG);
-  writeFileSync(join(deckel, "sprints", "sprint-01", "index.md"), MIN_SPRINT);
+  const dckl = join(tmp, ".dckl");
+  mkdirSync(join(dckl, "sprints", "sprint-01", "tasks"), { recursive: true });
+  writeFileSync(join(dckl, "config.yaml"), MIN_CONFIG);
+  writeFileSync(join(dckl, "sprints", "sprint-01", "index.md"), MIN_SPRINT);
   if (withTaskFile) {
-    writeFileSync(join(deckel, "sprints", "sprint-01", "tasks", "TSK-01.md"), MIN_TASK);
+    writeFileSync(join(dckl, "sprints", "sprint-01", "tasks", "TSK-01.md"), MIN_TASK);
   }
 }
 
 function installHook(tmp: string): void {
   const path = join(tmp, ".claude");
   mkdirSync(path, { recursive: true });
-  mkdirSync(join(path, "skills", "deckel"), { recursive: true });
-  writeFileSync(join(path, "skills", "deckel", "SKILL.md"), "---\nname: deckel\ndescription: x\n---\n");
+  mkdirSync(join(path, "skills", "dckl"), { recursive: true });
+  writeFileSync(join(path, "skills", "dckl", "SKILL.md"), "---\nname: dckl\ndescription: x\n---\n");
   writeFileSync(
     join(path, "settings.json"),
     JSON.stringify({
@@ -72,7 +72,7 @@ function installHook(tmp: string): void {
         PostToolUse: [
           {
             matcher: "Write|Edit|Bash",
-            hooks: [{ type: "command", command: "pnpm deckel heartbeat --silent" }],
+            hooks: [{ type: "command", command: "pnpm dckl heartbeat --silent" }],
           },
         ],
       },
@@ -80,11 +80,11 @@ function installHook(tmp: string): void {
   );
 }
 
-describe("deckel doctor", () => {
+describe("dckl doctor", () => {
   let tmp: string;
 
   beforeEach(() => {
-    tmp = mkdtempSync(join(tmpdir(), "deckel-doctor-"));
+    tmp = mkdtempSync(join(tmpdir(), "dckl-doctor-"));
   });
 
   afterEach(() => {
@@ -121,10 +121,10 @@ describe("deckel doctor", () => {
 
   // Acceptance: detects-missing ───────────────────────────────────────────
 
-  it("detects missing .deckel/ directory", async () => {
-    // tmp has no .deckel/ at all
+  it("detects missing .dckl/ directory", async () => {
+    // tmp has no .dckl/ at all
     const { code, findings } = await runDoctor({ cwd: tmp, silent: true });
-    expect(findings[0]?.code).toBe("missing-deckel");
+    expect(findings[0]?.code).toBe("missing-dckl");
     expect(code).toBe(2);
   });
 
@@ -132,7 +132,7 @@ describe("deckel doctor", () => {
     scaffold(tmp, false);
     installHook(tmp);
     writeFileSync(
-      join(tmp, ".deckel", "sprints", "sprint-01", "tasks", "TSK-01.md"),
+      join(tmp, ".dckl", "sprints", "sprint-01", "tasks", "TSK-01.md"),
       "---\nschema: 999\nid: TSK-01\n---\n", // wrong schema version → Valibot fails
     );
     const { findings } = await runDoctor({ cwd: tmp, silent: true });
@@ -145,7 +145,7 @@ describe("deckel doctor", () => {
     scaffold(tmp);
     installHook(tmp);
     writeFileSync(
-      join(tmp, ".deckel", "sprints", "sprint-01", "tasks", "TSK-99.md"),
+      join(tmp, ".dckl", "sprints", "sprint-01", "tasks", "TSK-99.md"),
       MIN_TASK.replace("TSK-01", "TSK-99"),
     );
     const { findings } = await runDoctor({ cwd: tmp, silent: true });
@@ -156,7 +156,7 @@ describe("deckel doctor", () => {
     scaffold(tmp);
     installHook(tmp);
     writeFileSync(
-      join(tmp, ".deckel", ".active-task"),
+      join(tmp, ".dckl", ".active-task"),
       JSON.stringify({ sprint_id: "sprint-01", task_id: "TSK-99" }),
     );
     const { findings } = await runDoctor({ cwd: tmp, silent: true });
@@ -170,7 +170,7 @@ describe("deckel doctor", () => {
     installHook(tmp);
     const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
     writeFileSync(
-      join(tmp, ".deckel", "sprints", "sprint-01", "tasks", "TSK-01.md"),
+      join(tmp, ".dckl", "sprints", "sprint-01", "tasks", "TSK-01.md"),
       `---
 schema: 1
 id: TSK-01
@@ -201,8 +201,8 @@ claim:
     const dir = join(tmp, ".claude");
     mkdirSync(dir, { recursive: true });
     writeFileSync(join(dir, "settings.json"), JSON.stringify({ hooks: { PostToolUse: [] } }));
-    mkdirSync(join(dir, "skills", "deckel"), { recursive: true });
-    writeFileSync(join(dir, "skills", "deckel", "SKILL.md"), "---\nname: deckel\n---\n");
+    mkdirSync(join(dir, "skills", "dckl"), { recursive: true });
+    writeFileSync(join(dir, "skills", "dckl", "SKILL.md"), "---\nname: dckl\n---\n");
     const { findings } = await runDoctor({ cwd: tmp, silent: true });
     expect(findings.find((f) => f.code === "hook-not-installed")).toBeDefined();
   });

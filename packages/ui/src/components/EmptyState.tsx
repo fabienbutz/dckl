@@ -16,7 +16,7 @@ export function EmptyState({ title, description, command, className }: Props) {
       )}
     >
       <div className="max-w-md space-y-3 text-center">
-        <div className="text-label text-text-tertiary">Deckel</div>
+        <div className="text-label text-text-tertiary">dckl</div>
         <h1 className="text-heading-lg font-medium text-text-primary">{title}</h1>
         {description && <p className="text-body text-text-secondary">{description}</p>}
         {command && (

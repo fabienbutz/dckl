@@ -1,4 +1,4 @@
-import type { TaskMeta } from "@deckel/server/schema";
+import type { TaskMeta } from "@dckl/server/schema";
 import { cn } from "../lib/cn.js";
 import { MarkdownInline } from "./MarkdownInline.js";
 import { ProgressPill } from "./ProgressPill.js";

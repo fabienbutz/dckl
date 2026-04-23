@@ -7,7 +7,7 @@ import { runStop } from "../src/commands/stop.js";
 
 function writeLock(dir: string, pid: number, port = 4321): void {
   writeFileSync(
-    join(dir, ".deckel", ".port"),
+    join(dir, ".dckl", ".port"),
     JSON.stringify(
       { pid, port, token: "t", startedAt: "2026-04-23T00:00:00.000Z" },
       null,
@@ -16,16 +16,16 @@ function writeLock(dir: string, pid: number, port = 4321): void {
   );
 }
 
-describe("deckel stop", () => {
+describe("dckl stop", () => {
   let tmp: string;
   let prevCwd: string;
 
   beforeEach(() => {
-    tmp = mkdtempSync(join(tmpdir(), "deckel-stop-"));
-    // Need a .deckel/ layout so findDeckelRoot succeeds.
-    const deckel = join(tmp, ".deckel");
+    tmp = mkdtempSync(join(tmpdir(), "dckl-stop-"));
+    // Need a .dckl/ layout so findDcklRoot succeeds.
+    const dckl = join(tmp, ".dckl");
     readdirSync(tmp); // ensure dir exists
-    require("node:fs").mkdirSync(deckel, { recursive: true });
+    require("node:fs").mkdirSync(dckl, { recursive: true });
     prevCwd = process.cwd();
     process.chdir(tmp);
   });
@@ -54,7 +54,7 @@ describe("deckel stop", () => {
     process.exitCode = 0;
     await runStop({});
     expect(process.exitCode).toBe(0);
-    expect(existsSync(join(tmp, ".deckel", ".port"))).toBe(false);
+    expect(existsSync(join(tmp, ".dckl", ".port"))).toBe(false);
     expect(log).toHaveBeenCalledWith(expect.stringContaining("stale"));
     log.mockRestore();
   });
@@ -64,7 +64,7 @@ describe("deckel stop", () => {
   it("signals an alive PID with SIGTERM and cleans up when it exits", async () => {
     // Spawn a long-running node process that installs a SIGTERM handler
     // which mirrors our serve.ts: on signal, delete .port and exit.
-    const portFile = join(tmp, ".deckel", ".port");
+    const portFile = join(tmp, ".dckl", ".port");
     const child = spawn(
       process.execPath,
       [
@@ -89,7 +89,7 @@ describe("deckel stop", () => {
   // Acceptance: stop-force ───────────────────────────────────────────────
 
   it("escalates to SIGKILL with --force when SIGTERM is ignored", async () => {
-    const portFile = join(tmp, ".deckel", ".port");
+    const portFile = join(tmp, ".dckl", ".port");
     // Child that ignores SIGTERM entirely.
     const child = spawn(
       process.execPath,
@@ -120,7 +120,7 @@ describe("deckel stop", () => {
   });
 
   it("exits 1 when SIGTERM is ignored and --force is not set", async () => {
-    const portFile = join(tmp, ".deckel", ".port");
+    const portFile = join(tmp, ".dckl", ".port");
     const child = spawn(
       process.execPath,
       [

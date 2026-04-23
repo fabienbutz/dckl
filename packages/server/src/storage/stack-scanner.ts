@@ -16,7 +16,7 @@ export type StackEntry = {
 };
 
 export type StackInventory = {
-  /** Absolute project root — the directory containing .deckel/. */
+  /** Absolute project root — the directory containing .dckl/. */
   projectRoot: string;
   entries: StackEntry[];
 };
@@ -31,7 +31,7 @@ export function scanStack(projectRoot: string): StackInventory {
   const entries: StackEntry[] = [];
   const claudeDir = join(projectRoot, ".claude");
   const ignoreMatcher = loadIgnoreMatcher(
-    join(projectRoot, ".deckel", ".deckelignore"),
+    join(projectRoot, ".dckl", ".dcklignore"),
   );
 
   // Project CLAUDE.md (root).
@@ -121,7 +121,7 @@ export function scanStack(projectRoot: string): StackInventory {
     });
   }
 
-  // docs/**/*.md — respect .deckelignore + built-ins.
+  // docs/**/*.md — respect .dcklignore + built-ins.
   const docsDir = join(projectRoot, "docs");
   if (existsSync(docsDir) && statSync(docsDir).isDirectory()) {
     walkDir(docsDir, projectRoot, (abs) => {

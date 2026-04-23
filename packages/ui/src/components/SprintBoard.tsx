@@ -1,4 +1,4 @@
-import type { Sprint, TaskMeta } from "@deckel/server/schema";
+import type { Sprint, TaskMeta } from "@dckl/server/schema";
 import { motion } from "framer-motion";
 import { AlertTriangle, Loader2, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { cn } from "../lib/cn.js";

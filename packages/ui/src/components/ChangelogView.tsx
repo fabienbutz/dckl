@@ -67,7 +67,7 @@ export function ChangelogView() {
         <History size={16} strokeWidth={1.5} className="text-text-secondary" />
         <div className="text-body text-text-primary font-medium">Changelog</div>
         <div className="ml-auto text-label text-text-tertiary">
-          .deckel/CHANGELOG.md
+          .dckl/CHANGELOG.md
         </div>
       </div>
 
@@ -100,8 +100,8 @@ function ChangelogBody({ content }: { content: string }) {
       <div className="max-w-xl space-y-3 text-text-secondary">
         <div className="text-body">
           No changelog entries yet. Every status flip, check toggle, or
-          correction via <code className="font-mono text-label">deckel check</code> /{" "}
-          <code className="font-mono text-label">deckel correction add</code> will
+          correction via <code className="font-mono text-label">dckl check</code> /{" "}
+          <code className="font-mono text-label">dckl correction add</code> will
           append here.
         </div>
       </div>

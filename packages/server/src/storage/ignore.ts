@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 
 /**
- * Minimal .deckelignore matcher. Supports:
+ * Minimal .dcklignore matcher. Supports:
  *   - comment lines (#)
  *   - exact-name matches (node_modules)
  *   - simple globs with * (e.g. *.log)

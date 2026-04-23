@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { Task, TaskMeta } from "@deckel/server/schema";
+import type { Task, TaskMeta } from "@dckl/server/schema";
 import { ApiError, api, type WithEtag } from "./api.js";
 
 const keys = {

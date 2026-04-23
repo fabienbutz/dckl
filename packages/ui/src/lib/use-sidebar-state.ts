@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-const KEY = "deckel.sidebar.collapsed";
+const KEY = "dckl.sidebar.collapsed";
 
 export function useSidebarState(): {
   collapsed: boolean;

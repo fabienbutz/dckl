@@ -4,12 +4,12 @@ import { useEffect } from "react";
 type TaskUpdatedEvent = { kind: "task.updated"; sprint_id: string; task_id: string };
 type SprintUpdatedEvent = { kind: "sprint.updated"; sprint_id: string };
 type ConfigUpdatedEvent = { kind: "config.updated" };
-type DeckelEvent = TaskUpdatedEvent | SprintUpdatedEvent | ConfigUpdatedEvent;
+type dcklEvent = TaskUpdatedEvent | SprintUpdatedEvent | ConfigUpdatedEvent;
 
 /**
  * Subscribes to the server's SSE stream and invalidates the affected
  * TanStack Query keys when events arrive. Replaces the 5-second polling
- * with push-based freshness: a CLI `deckel check TSK-01 …` shows up in
+ * with push-based freshness: a CLI `dckl check TSK-01 …` shows up in
  * the UI within the network round-trip (sub-100ms on localhost).
  */
 export function useLiveUpdates(): void {
@@ -74,4 +74,4 @@ export function useLiveUpdates(): void {
 
 // Export the event type so consumers can typecheck custom handlers if
 // needed later.
-export type { DeckelEvent };
+export type { dcklEvent };

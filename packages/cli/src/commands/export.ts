@@ -1,25 +1,25 @@
 import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { Store } from "@deckel/server";
-import { findDeckelRoot } from "@deckel/server/storage";
-import type { SecurityCheckTemplateEntry } from "@deckel/server/schema";
+import { Store } from "@dckl/server";
+import { findDcklRoot } from "@dckl/server/storage";
+import type { SecurityCheckTemplateEntry } from "@dckl/server/schema";
 
 export async function runExport(taskId: string): Promise<void> {
-  const deckelRoot = findDeckelRoot(process.cwd());
-  if (!deckelRoot) {
-    console.error("[deckel] no .deckel/ found — run `deckel init` first");
+  const dcklRoot = findDcklRoot(process.cwd());
+  if (!dcklRoot) {
+    console.error("[dckl] no .dckl/ found — run `dckl init` first");
     process.exitCode = 1;
     return;
   }
 
-  const sprintId = findSprintForTask(deckelRoot, taskId);
+  const sprintId = findSprintForTask(dcklRoot, taskId);
   if (!sprintId) {
-    console.error(`[deckel] task ${taskId} not found in any sprint`);
+    console.error(`[dckl] task ${taskId} not found in any sprint`);
     process.exitCode = 1;
     return;
   }
 
-  const store = new Store(deckelRoot);
+  const store = new Store(dcklRoot);
 
   const [{ task }, config, vision, templates] = await Promise.all([
     store.getTask(sprintId, taskId),
@@ -133,22 +133,22 @@ export async function runExport(taskId: string): Promise<void> {
   out.push("");
   out.push("Before writing code:");
   out.push("```bash");
-  out.push(`pnpm deckel task claim ${meta.id}`);
+  out.push(`pnpm dckl task claim ${meta.id}`);
   out.push("```");
   out.push("");
   out.push("When you address a reminder or test:");
   out.push("```bash");
-  out.push(`pnpm deckel check ${meta.id} <check-id>`);
+  out.push(`pnpm dckl check ${meta.id} <check-id>`);
   out.push("```");
   out.push("");
   out.push("When you discover a new issue mid-work:");
   out.push("```bash");
-  out.push(`pnpm deckel correction add ${meta.id} "<short description>"`);
+  out.push(`pnpm dckl correction add ${meta.id} "<short description>"`);
   out.push("```");
   out.push("");
   out.push("When pausing or finishing:");
   out.push("```bash");
-  out.push(`pnpm deckel task release ${meta.id}`);
+  out.push(`pnpm dckl task release ${meta.id}`);
   out.push("```");
   out.push("");
   out.push("Do not mark this task `done` yourself — only the user sets that.");
@@ -156,8 +156,8 @@ export async function runExport(taskId: string): Promise<void> {
   console.log(out.join("\n"));
 }
 
-function findSprintForTask(deckelRoot: string, taskId: string): string | null {
-  const sprintsDir = join(deckelRoot, "sprints");
+function findSprintForTask(dcklRoot: string, taskId: string): string | null {
+  const sprintsDir = join(dcklRoot, "sprints");
   if (!existsSync(sprintsDir)) return null;
   for (const entry of readdirSync(sprintsDir)) {
     const taskFile = join(sprintsDir, entry, "tasks", `${taskId}.md`);

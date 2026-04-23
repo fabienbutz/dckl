@@ -12,9 +12,9 @@ const GRAY_MATTER_OPTIONS = {
 };
 
 /**
- * Parses a journey file (.deckel/journeys/<slug>.md). Throws on invalid
+ * Parses a journey file (.dckl/journeys/<slug>.md). Throws on invalid
  * frontmatter — same philosophy as parseTask: the user will see a clear
- * error and can fix the file, rather than Deckel silently hiding a
+ * error and can fix the file, rather than dckl silently hiding a
  * malformed journey.
  */
 export function parseJourney(content: string): Journey {

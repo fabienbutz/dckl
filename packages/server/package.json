@@ -1,7 +1,7 @@
 {
-  "name": "@deckel/server",
+  "name": "@dckl/server",
   "version": "0.1.0",
-  "description": "Hono server for Deckel",
+  "description": "Hono server for dckl",
   "license": "MIT",
   "type": "module",
   "main": "./src/index.ts",
@@ -14,7 +14,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "echo 'server is imported as source by @deckel/cli — no build step'",
+    "build": "echo 'server is imported as source by @dckl/cli — no build step'",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },

@@ -7,7 +7,7 @@ describe("GET /api/health", () => {
     const res = await app.request("/api/health");
     expect(res.status).toBe(200);
     const body = (await res.json()) as { ok: boolean; name: string; version: number };
-    expect(body).toEqual({ ok: true, name: "deckel", version: 1 });
+    expect(body).toEqual({ ok: true, name: "dckl", version: 1 });
   });
 
   it("GET /api/token returns the generated token", async () => {

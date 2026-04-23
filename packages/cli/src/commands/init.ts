@@ -23,10 +23,10 @@ const PREFIX_REGEX = /^[A-Z][A-Z0-9]*$/;
 
 export async function runInit(options: InitOptions = {}): Promise<void> {
   const cwd = options.cwd ?? process.cwd();
-  const deckelDir = resolve(cwd, ".deckel");
+  const dcklDir = resolve(cwd, ".dckl");
 
-  if (existsSync(deckelDir)) {
-    console.error(`[deckel init] .deckel/ already exists at ${deckelDir}`);
+  if (existsSync(dcklDir)) {
+    console.error(`[dckl init] .dckl/ already exists at ${dcklDir}`);
     console.error("              Refusing to overwrite. Remove it first if you want to re-init.");
     process.exitCode = 1;
     return;
@@ -35,20 +35,20 @@ export async function runInit(options: InitOptions = {}): Promise<void> {
   const defaultName = basename(resolve(cwd));
   const { name, prefix } = await resolveAnswers(options, defaultName);
 
-  scaffold(deckelDir, { name, prefix });
+  scaffold(dcklDir, { name, prefix });
   if (!options.noDemo) {
-    scaffoldWelcomeSprint(deckelDir, prefix);
+    scaffoldWelcomeSprint(dcklDir, prefix);
   }
   installClaudeIntegration(cwd);
 
-  console.log(`[deckel init] Scaffolded ${deckelDir}`);
+  console.log(`[dckl init] Scaffolded ${dcklDir}`);
   console.log("              + CLAUDE.md managed block installed");
-  console.log("              + .claude/skills/deckel/SKILL.md installed");
+  console.log("              + .claude/skills/dckl/SKILL.md installed");
   console.log("              + .claude/settings.json heartbeat hook installed");
   if (!options.noDemo) {
     console.log("              + welcome sprint (3 teaching tasks) — delete anytime");
   }
-  console.log("              Next: pnpm deckel (or npx @deckel/cli serve)");
+  console.log("              Next: pnpm dckl (or npx @dckl/cli serve)");
 }
 
 async function resolveAnswers(
@@ -94,22 +94,22 @@ function validatePrefix(prefix: string): void {
 
 type ScaffoldOptions = { name: string; prefix: string };
 
-function scaffold(deckelDir: string, { name, prefix }: ScaffoldOptions): void {
-  mkdirSync(deckelDir, { recursive: true });
-  mkdirSync(join(deckelDir, "sprints"), { recursive: true });
-  mkdirSync(join(deckelDir, "templates"), { recursive: true });
-  mkdirSync(join(deckelDir, ".trash"), { recursive: true });
+function scaffold(dcklDir: string, { name, prefix }: ScaffoldOptions): void {
+  mkdirSync(dcklDir, { recursive: true });
+  mkdirSync(join(dcklDir, "sprints"), { recursive: true });
+  mkdirSync(join(dcklDir, "templates"), { recursive: true });
+  mkdirSync(join(dcklDir, ".trash"), { recursive: true });
 
   const today = new Date().toISOString().slice(0, 10);
-  writeFileSync(join(deckelDir, "config.yaml"), renderConfigYaml(name, prefix, today));
-  writeFileSync(join(deckelDir, "templates", "security-checks.yaml"), DEFAULT_SECURITY_TEMPLATE);
-  writeFileSync(join(deckelDir, "templates", "test-categories.yaml"), DEFAULT_TEST_CATEGORIES);
-  writeFileSync(join(deckelDir, ".deckelignore"), DEFAULT_IGNORE);
-  writeFileSync(join(deckelDir, ".gitignore"), ".trash/\n.port\n.active-task\n");
+  writeFileSync(join(dcklDir, "config.yaml"), renderConfigYaml(name, prefix, today));
+  writeFileSync(join(dcklDir, "templates", "security-checks.yaml"), DEFAULT_SECURITY_TEMPLATE);
+  writeFileSync(join(dcklDir, "templates", "test-categories.yaml"), DEFAULT_TEST_CATEGORIES);
+  writeFileSync(join(dcklDir, ".dcklignore"), DEFAULT_IGNORE);
+  writeFileSync(join(dcklDir, ".gitignore"), ".trash/\n.port\n.active-task\n");
 }
 
-function scaffoldWelcomeSprint(deckelDir: string, prefix: string): void {
-  const sprintDir = join(deckelDir, "sprints", "sprint-00-welcome");
+function scaffoldWelcomeSprint(dcklDir: string, prefix: string): void {
+  const sprintDir = join(dcklDir, "sprints", "sprint-00-welcome");
   const tasksDir = join(sprintDir, "tasks");
   mkdirSync(tasksDir, { recursive: true });
 
@@ -180,7 +180,7 @@ const DEFAULT_TEST_CATEGORIES = `categories:
     label: "Security / threat modelling"
 `;
 
-const DEFAULT_IGNORE = `# Additional glob patterns to exclude from deckel's inventory scan.
+const DEFAULT_IGNORE = `# Additional glob patterns to exclude from dckl's inventory scan.
 # Built-ins (node_modules, .git, dist, build, coverage, .next, .turbo, .cache)
 # are always ignored.
 `;

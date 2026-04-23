@@ -26,13 +26,13 @@ const pkg = JSON.parse(readFileSync(resolve(here, "..", "package.json"), "utf8")
 const program = new Command();
 
 program
-  .name("deckel")
+  .name("dckl")
   .description("Local in-repo sprint & security cockpit for AI-assisted development")
   .version(pkg.version, "-v, --version", "Output the current version");
 
 program
   .command("serve", { isDefault: true })
-  .description("Start the Deckel UI + API server on localhost")
+  .description("Start the dckl UI + API server on localhost")
   .option("-p, --port <port>", "Port to listen on (default 4321)", (value) =>
     Number.parseInt(value, 10),
   )
@@ -46,7 +46,7 @@ program
 
 program
   .command("stop")
-  .description("Gracefully stop the running Deckel server (reads .deckel/.port)")
+  .description("Gracefully stop the running dckl server (reads .dckl/.port)")
   .option("--force", "Escalate to SIGKILL if SIGTERM does not land within the timeout")
   .option("--timeout <ms>", "How long to wait for graceful exit (default 2000)", (v) =>
     Number.parseInt(v, 10),
@@ -57,7 +57,7 @@ program
 
 program
   .command("init")
-  .description("Scaffold a .deckel/ directory in the current project")
+  .description("Scaffold a .dckl/ directory in the current project")
   .option("-n, --name <name>", "Project name (default: current directory name)")
   .option("-p, --prefix <prefix>", "Task-ID prefix (default: TSK)")
   .option("-y, --yes", "Non-interactive — accept all defaults")
@@ -73,7 +73,7 @@ const taskCmd = program
 
 taskCmd
   .command("claim <id>")
-  .description("Mark a task as actively worked on (writes .deckel/.active-task)")
+  .description("Mark a task as actively worked on (writes .dckl/.active-task)")
   .option("--by <agent>", "Agent name (default: claude-code)")
   .action(async (id: string, opts: { by?: string }) => {
     await runTaskClaim(id, opts);
@@ -132,7 +132,7 @@ program
 
 program
   .command("doctor")
-  .description("Audit .deckel/ and Claude integration for consistency issues")
+  .description("Audit .dckl/ and Claude integration for consistency issues")
   .option("--json", "Output JSON instead of Markdown")
   .action(async (opts: { json?: boolean }) => {
     const { code } = await runDoctor(opts);
@@ -145,7 +145,7 @@ const journeyCmd = program
 
 journeyCmd
   .command("new <slug>")
-  .description("Scaffold a new journey at .deckel/journeys/<slug>.md")
+  .description("Scaffold a new journey at .dckl/journeys/<slug>.md")
   .option("-n, --name <name>", "Human-readable name (default: derived from the slug)")
   .option("-d, --description <text>", "One-line description")
   .action(async (slug: string, opts: { name?: string; description?: string }) => {
@@ -163,7 +163,7 @@ const visionCmd = program.command("vision").description("Project vision operatio
 
 visionCmd
   .command("init")
-  .description("Scaffold .deckel/VISION.md (the project's north-star anchor)")
+  .description("Scaffold .dckl/VISION.md (the project's north-star anchor)")
   .option("-n, --north-star <text>", "North star — one sentence, the eventual state")
   .option("-a, --audience <text>", "Who this is for, specifically")
   .option("-g, --non-goals <csv>", "Things we deliberately don't do (comma-separated)")

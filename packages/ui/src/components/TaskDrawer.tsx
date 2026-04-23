@@ -1,4 +1,4 @@
-import type { SecurityCheckTemplateEntry, Task, TaskMeta } from "@deckel/server/schema";
+import type { SecurityCheckTemplateEntry, Task, TaskMeta } from "@dckl/server/schema";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {

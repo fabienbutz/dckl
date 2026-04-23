@@ -1,4 +1,4 @@
-import type { TaskMeta } from "@deckel/server/schema";
+import type { TaskMeta } from "@dckl/server/schema";
 import { useQueries } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
@@ -68,9 +68,9 @@ function AppInner() {
   if (config.isError && config.error instanceof ApiError && config.error.status === 503) {
     return (
       <EmptyState
-        title="No .deckel/ in this directory"
-        description="Scaffold one so Deckel knows where to read and write sprints and tasks."
-        command="pnpm deckel init"
+        title="No .dckl/ in this directory"
+        description="Scaffold one so dckl knows where to read and write sprints and tasks."
+        command="pnpm dckl init"
       />
     );
   }
@@ -81,7 +81,7 @@ function AppInner() {
     return (
       <EmptyState
         title="No sprints yet"
-        description="Add a sprint folder under .deckel/sprints/ with an index.md to see it here. Sprint creation from the UI lands in Sprint 3."
+        description="Add a sprint folder under .dckl/sprints/ with an index.md to see it here. Sprint creation from the UI lands in Sprint 3."
       />
     );
   }

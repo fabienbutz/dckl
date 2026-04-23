@@ -15,7 +15,7 @@ describe("port-discovery", () => {
   let portFile: string;
 
   beforeEach(() => {
-    tmp = mkdtempSync(join(tmpdir(), "deckel-port-"));
+    tmp = mkdtempSync(join(tmpdir(), "dckl-port-"));
     portFile = join(tmp, ".port");
   });
 

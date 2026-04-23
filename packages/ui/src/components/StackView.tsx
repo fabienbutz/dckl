@@ -55,7 +55,7 @@ const CATEGORY_ICON: Record<StackEntry["category"], LucideIcon> = {
   memory: Brain,
 };
 
-const MEMORY_COLLAPSED_KEY = "deckel.stack.memory-collapsed";
+const MEMORY_COLLAPSED_KEY = "dckl.stack.memory-collapsed";
 
 export function StackView({ activePath: controlledPath, onSelectPath }: Props = {}) {
   const q = useStackInventory();
@@ -155,7 +155,7 @@ export function StackView({ activePath: controlledPath, onSelectPath }: Props = 
 
           {entries.length === 0 && (
             <div className="px-3 text-body text-text-tertiary">
-              {q.isLoading ? "Scanning…" : "Nothing to show. Run `pnpm deckel init`."}
+              {q.isLoading ? "Scanning…" : "Nothing to show. Run `pnpm dckl init`."}
             </div>
           )}
         </nav>

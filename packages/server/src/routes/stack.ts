@@ -19,7 +19,7 @@ export type StackRoutesOptions = {
 export function stackRoutes(store: Store, options: StackRoutesOptions = {}): Hono {
   const app = new Hono();
 
-  // `.deckel/` lives inside the project root. Walk up one level to reach
+  // `.dckl/` lives inside the project root. Walk up one level to reach
   // the project root that scanStack expects.
   const projectRoot = resolve(store.paths.root, "..");
 
@@ -45,7 +45,7 @@ export function stackRoutes(store: Store, options: StackRoutesOptions = {}): Hon
     }
 
     // Memory files: resolved via the memory-specific pathway. Always
-    // validated against the memory dir, never persisted to .deckel/.
+    // validated against the memory dir, never persisted to .dckl/.
     if (requested.startsWith("memory://")) {
       if (options.noMemory) {
         return c.json({ error: "memory scanner disabled (--no-memory)" }, 403);

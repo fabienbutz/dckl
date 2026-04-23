@@ -1,18 +1,18 @@
 {
-  "name": "@deckel/cli",
+  "name": "@dckl/cli",
   "version": "0.1.0",
   "description": "Local in-repo sprint & security cockpit CLI",
   "license": "MIT",
   "type": "module",
   "bin": {
-    "deckel": "./dist/cli.js"
+    "dckl": "./dist/cli.js"
   },
   "files": ["dist", "README.md"],
   "engines": {
     "node": ">=20"
   },
   "scripts": {
-    "build": "pnpm --filter @deckel/ui build && tsup && node scripts/copy-ui.mjs",
+    "build": "pnpm --filter @dckl/ui build && tsup && node scripts/copy-ui.mjs",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
@@ -24,8 +24,8 @@
     "proper-lockfile": "^4.1.2"
   },
   "devDependencies": {
-    "@deckel/server": "workspace:*",
-    "@deckel/ui": "workspace:*",
+    "@dckl/server": "workspace:*",
+    "@dckl/ui": "workspace:*",
     "@hono/node-server": "^1.13.7",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.10.0",

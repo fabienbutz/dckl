@@ -30,10 +30,10 @@ importers:
         specifier: ^4.1.2
         version: 4.1.2
     devDependencies:
-      '@deckel/server':
+      '@dckl/server':
         specifier: workspace:*
         version: link:../server
-      '@deckel/ui':
+      '@dckl/ui':
         specifier: workspace:*
         version: link:../ui
       '@hono/node-server':
@@ -125,7 +125,7 @@ importers:
         specifier: ^4.0.0
         version: 4.0.1
     devDependencies:
-      '@deckel/server':
+      '@dckl/server':
         specifier: workspace:*
         version: link:../server
       '@types/react':

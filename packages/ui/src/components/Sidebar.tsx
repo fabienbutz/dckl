@@ -1,4 +1,4 @@
-import type { Config, JourneyMeta, SprintMeta } from "@deckel/server/schema";
+import type { Config, JourneyMeta, SprintMeta } from "@dckl/server/schema";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   BookOpen,
@@ -53,7 +53,7 @@ export function Sidebar({
     return b.id.localeCompare(a.id);
   });
 
-  const projectName = config?.project.name ?? "Deckel";
+  const projectName = config?.project.name ?? "dckl";
 
   return (
     <motion.aside
@@ -118,7 +118,7 @@ export function Sidebar({
             <li>
               <DisabledItem
                 label="New journey"
-                hint={"CLI: deckel journey new"}
+                hint={"CLI: dckl journey new"}
               />
             </li>
           </ul>
@@ -172,7 +172,7 @@ export function Sidebar({
       </nav>
 
         <div className="h-[40px] px-6 flex items-center">
-          <span className="text-label text-text-tertiary">deckel · v0.1.0</span>
+          <span className="text-label text-text-tertiary">dckl · v0.1.0</span>
         </div>
       </div>
     </motion.aside>
@@ -223,7 +223,7 @@ function Section({
   storageKey: string;
   children: React.ReactNode;
 }) {
-  const key = `deckel.sidebar.section.${storageKey}`;
+  const key = `dckl.sidebar.section.${storageKey}`;
   const [open, setOpen] = useState<boolean>(() => {
     if (typeof window === "undefined") return true;
     return window.localStorage.getItem(key) !== "0";

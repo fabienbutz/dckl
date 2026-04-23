@@ -1,4 +1,4 @@
-import type { JourneyStep } from "@deckel/server/schema";
+import type { JourneyStep } from "@dckl/server/schema";
 import { AlertTriangle, ArrowRight, CircleCheck, CircleDashed, XCircle } from "lucide-react";
 import { cn } from "../lib/cn.js";
 import { useJourney } from "../lib/queries.js";
@@ -46,7 +46,7 @@ export function JourneyView({ journeyId }: Props) {
 
               {q.data.meta.steps.length === 0 ? (
                 <div className="text-body text-text-tertiary">
-                  No steps yet. Edit <code className="font-mono text-label">.deckel/journeys/{journeyId}.md</code> and add a <code className="font-mono text-label">steps:</code> array.
+                  No steps yet. Edit <code className="font-mono text-label">.dckl/journeys/{journeyId}.md</code> and add a <code className="font-mono text-label">steps:</code> array.
                 </div>
               ) : (
                 <ol className="space-y-0">

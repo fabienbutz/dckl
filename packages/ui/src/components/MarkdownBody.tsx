@@ -2,7 +2,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 /**
- * Deckel-styled Markdown components. Shared between MarkdownReader
+ * dckl-styled Markdown components. Shared between MarkdownReader
  * (full file view) and TaskDrawer (task body section) so both surfaces
  * stay visually consistent.
  */
@@ -70,14 +70,14 @@ type Props = {
 };
 
 /**
- * Renders a Markdown body with Deckel's shared MD_COMPONENTS and GFM
+ * Renders a Markdown body with dckl's shared MD_COMPONENTS and GFM
  * enabled. Returns null for empty/whitespace-only input so callers do
  * not need to guard against layout artefacts.
  */
 export function MarkdownBody({ children, className }: Props) {
   if (!children.trim()) return null;
   return (
-    <article className={className ?? "prose-deckel"}>
+    <article className={className ?? "prose-dckl"}>
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={MD_COMPONENTS}>
         {children}
       </ReactMarkdown>

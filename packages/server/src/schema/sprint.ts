@@ -6,7 +6,7 @@ export const SprintStatus = v.picklist(["planning", "active", "review", "done"])
 export type SprintStatus = v.InferOutput<typeof SprintStatus>;
 
 /**
- * Sprint frontmatter, stored at .deckel/sprints/<sprint-id>/index.md.
+ * Sprint frontmatter, stored at .dckl/sprints/<sprint-id>/index.md.
  * Task IDs are referenced by name; tasks live in tasks/<task-id>.md (one file
  * per task) to keep diffs granular and parallel edits safe.
  */

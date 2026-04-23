@@ -1,4 +1,4 @@
-import type { TaskClaim } from "@deckel/server/schema";
+import type { TaskClaim } from "@dckl/server/schema";
 import { motion } from "framer-motion";
 import { cn } from "../lib/cn.js";
 

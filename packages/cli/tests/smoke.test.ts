@@ -30,7 +30,7 @@ describe("CLI smoke test", () => {
   beforeAll(async () => {
     if (!existsSync(cliBundle)) {
       throw new Error(
-        `CLI bundle not found at ${cliBundle} — run 'pnpm --filter @deckel/cli build' first`,
+        `CLI bundle not found at ${cliBundle} — run 'pnpm --filter @dckl/cli build' first`,
       );
     }
     child = spawn("node", [cliBundle, "serve", "--port", String(TEST_PORT)], {
@@ -50,7 +50,7 @@ describe("CLI smoke test", () => {
     const res = await fetch(`${BASE_URL}/api/health`);
     expect(res.status).toBe(200);
     const body = (await res.json()) as { ok: boolean; name: string; version: number };
-    expect(body).toEqual({ ok: true, name: "deckel", version: 1 });
+    expect(body).toEqual({ ok: true, name: "dckl", version: 1 });
   });
 
   it("GET / returns the UI index.html", async () => {

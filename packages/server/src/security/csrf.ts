@@ -6,14 +6,14 @@ export function generateCsrfToken(): string {
 }
 
 const WRITE_METHODS = new Set(["POST", "PATCH", "PUT", "DELETE"]);
-const TOKEN_HEADER = "x-deckel-token";
+const TOKEN_HEADER = "x-dckl-token";
 
 /**
  * Double-defence against CSRF from arbitrary localhost tabs:
  *   1. A per-start random token, injected into the UI's index.html at serve
- *      time, must be echoed back in the X-Deckel-Token header on writes.
+ *      time, must be echoed back in the X-dckl-Token header on writes.
  *   2. The Origin header (when present) must point at the server's own
- *      host:port. Missing Origin is allowed — CLI companions (curl, deckel
+ *      host:port. Missing Origin is allowed — CLI companions (curl, dckl
  *      check) have no origin and still need to write.
  *
  * Read-only requests (GET/HEAD) are unguarded: an attacker knowing the port
@@ -27,7 +27,7 @@ export function csrfMiddleware(token: string): MiddlewareHandler {
 
     const headerToken = c.req.header(TOKEN_HEADER);
     if (!headerToken || !timingSafeEqual(headerToken, token)) {
-      return c.json({ error: "missing or invalid X-Deckel-Token" }, 403);
+      return c.json({ error: "missing or invalid X-dckl-Token" }, 403);
     }
 
     const origin = c.req.header("origin");

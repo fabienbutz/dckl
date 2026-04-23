@@ -2,14 +2,14 @@ import { existsSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 
 /**
- * Resolves the absolute path to the project's .deckel/ directory. The project
+ * Resolves the absolute path to the project's .dckl/ directory. The project
  * root is determined by walking up from the starting directory until a
- * .deckel/ folder is found, or a sentinel (.git, package.json) is hit.
+ * .dckl/ folder is found, or a sentinel (.git, package.json) is hit.
  */
-export function findDeckelRoot(startDir: string = process.cwd()): string | null {
+export function findDcklRoot(startDir: string = process.cwd()): string | null {
   let current = resolve(startDir);
   while (true) {
-    const candidate = resolve(current, ".deckel");
+    const candidate = resolve(current, ".dckl");
     if (existsSync(candidate) && statSync(candidate).isDirectory()) {
       return candidate;
     }
@@ -19,7 +19,7 @@ export function findDeckelRoot(startDir: string = process.cwd()): string | null 
   }
 }
 
-export type DeckelPaths = {
+export type DcklPaths = {
   root: string;
   config: string;
   templates: string;
@@ -30,27 +30,27 @@ export type DeckelPaths = {
   vision: string;
 };
 
-export function deckelPaths(root: string): DeckelPaths {
+export function dcklPaths(root: string): DcklPaths {
   return {
     root,
     config: resolve(root, "config.yaml"),
     templates: resolve(root, "templates"),
     sprints: resolve(root, "sprints"),
     trash: resolve(root, ".trash"),
-    ignoreFile: resolve(root, ".deckelignore"),
+    ignoreFile: resolve(root, ".dcklignore"),
     portFile: resolve(root, ".port"),
     vision: resolve(root, "VISION.md"),
   };
 }
 
-export function sprintDir(paths: DeckelPaths, sprintId: string): string {
+export function sprintDir(paths: DcklPaths, sprintId: string): string {
   return resolve(paths.sprints, sprintId);
 }
 
-export function sprintIndexFile(paths: DeckelPaths, sprintId: string): string {
+export function sprintIndexFile(paths: DcklPaths, sprintId: string): string {
   return resolve(sprintDir(paths, sprintId), "index.md");
 }
 
-export function taskFile(paths: DeckelPaths, sprintId: string, taskId: string): string {
+export function taskFile(paths: DcklPaths, sprintId: string, taskId: string): string {
   return resolve(sprintDir(paths, sprintId), "tasks", `${taskId}.md`);
 }

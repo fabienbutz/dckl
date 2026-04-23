@@ -2,7 +2,7 @@ import { existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { stdin as input, stdout as output } from "node:process";
 import { createInterface } from "node:readline/promises";
-import { findDeckelRoot } from "@deckel/server/storage";
+import { findDcklRoot } from "@dckl/server/storage";
 
 export type VisionInitOptions = {
   northStar?: string;
@@ -14,17 +14,17 @@ export type VisionInitOptions = {
 };
 
 export async function runVisionInit(options: VisionInitOptions = {}): Promise<void> {
-  const deckelRoot = findDeckelRoot(process.cwd());
-  if (!deckelRoot) {
-    console.error("[deckel] no .deckel/ found — run `deckel init` first");
+  const dcklRoot = findDcklRoot(process.cwd());
+  if (!dcklRoot) {
+    console.error("[dckl] no .dckl/ found — run `dckl init` first");
     process.exitCode = 1;
     return;
   }
 
-  const visionPath = join(deckelRoot, "VISION.md");
+  const visionPath = join(dcklRoot, "VISION.md");
   if (existsSync(visionPath) && !options.force) {
     console.error(
-      `[deckel vision] ${visionPath} already exists. Use --force to overwrite.`,
+      `[dckl vision] ${visionPath} already exists. Use --force to overwrite.`,
     );
     process.exitCode = 1;
     return;
@@ -35,8 +35,8 @@ export async function runVisionInit(options: VisionInitOptions = {}): Promise<vo
   const content = renderVision({ ...answers, updated: today });
   writeFileSync(visionPath, content, "utf8");
 
-  console.log(`[deckel vision] Wrote ${visionPath}`);
-  console.log("              Run `pnpm deckel status` to see it surfaced.");
+  console.log(`[dckl vision] Wrote ${visionPath}`);
+  console.log("              Run `pnpm dckl status` to see it surfaced.");
 }
 
 type Answers = {
@@ -116,16 +116,16 @@ function renderVision(a: Answers & { updated: string }): string {
   parts.push("## Full Vision");
   parts.push("");
   parts.push(
-    "Add longer prose here — the frontmatter is what `deckel status` and",
+    "Add longer prose here — the frontmatter is what `dckl status` and",
   );
   parts.push(
-    "`deckel export` surface; the body is for humans reading the file directly.",
+    "`dckl export` surface; the body is for humans reading the file directly.",
   );
   parts.push("");
   parts.push(
     "_Reviewed / refreshed: " +
       a.updated +
-      ". Stale after ~60 days — `deckel status` will flag it._",
+      ". Stale after ~60 days — `dckl status` will flag it._",
   );
   parts.push("");
   return parts.join("\n");

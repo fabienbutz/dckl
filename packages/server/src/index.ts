@@ -14,8 +14,8 @@ import { Store } from "./storage/store.js";
 import { uiHandler } from "./ui-handler.js";
 
 export type AppOptions = {
-  /** Absolute path to the .deckel/ root. If omitted, data routes return 503. */
-  deckelRoot?: string;
+  /** Absolute path to the .dckl/ root. If omitted, data routes return 503. */
+  dcklRoot?: string;
   /** Absolute path to the built UI directory. If omitted, UI is not served. */
   uiDir?: string;
   /** CSRF token. Generated randomly if not supplied. */
@@ -34,12 +34,12 @@ export type AppHandle = {
 export function createApp(options: AppOptions = {}): AppHandle {
   const csrfToken = options.csrfToken ?? generateCsrfToken();
   const bus = new EventBus();
-  const store = options.deckelRoot ? new Store(options.deckelRoot) : null;
+  const store = options.dcklRoot ? new Store(options.dcklRoot) : null;
   if (store) store.setEventBus(bus);
 
   const app = new Hono();
 
-  app.get("/api/health", (c) => c.json({ ok: true, name: "deckel", version: 1 }));
+  app.get("/api/health", (c) => c.json({ ok: true, name: "dckl", version: 1 }));
   app.get("/api/token", (c) => c.json({ token: csrfToken }));
 
   // SSE stream of Store state changes. Registered directly (not as a
@@ -82,7 +82,7 @@ export function createApp(options: AppOptions = {}): AppHandle {
     app.route("/api/stack", stackRoutes(store, { noMemory: options.noMemory }));
   } else {
     const missing = (c: { json: (body: unknown, status: number) => Response }) =>
-      c.json({ error: "no .deckel/ found — run `deckel init`" }, 503);
+      c.json({ error: "no .dckl/ found — run `dckl init`" }, 503);
     app.all("/api/config", missing);
     app.all("/api/sprints", missing);
     app.all("/api/sprints/*", missing);

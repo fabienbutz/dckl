@@ -1,6 +1,6 @@
 import { existsSync, unlinkSync } from "node:fs";
 import { join } from "node:path";
-import { findDeckelRoot } from "@deckel/server/storage";
+import { findDcklRoot } from "@dckl/server/storage";
 import { isProcessAlive, readPortLock } from "../port-discovery.js";
 
 export type StopOptions = {
@@ -12,29 +12,29 @@ const DEFAULT_TIMEOUT_MS = 2_000;
 const POLL_INTERVAL_MS = 100;
 
 /**
- * Gracefully shuts down the running deckel server by signalling the PID
- * in .deckel/.port and waiting for it to exit. Cleans up stale .port
+ * Gracefully shuts down the running dckl server by signalling the PID
+ * in .dckl/.port and waiting for it to exit. Cleans up stale .port
  * files when the PID is already dead.
  */
 export async function runStop(opts: StopOptions = {}): Promise<void> {
-  const deckelRoot = findDeckelRoot(process.cwd());
-  if (!deckelRoot) {
-    console.error("[deckel stop] no .deckel/ found in this tree");
+  const dcklRoot = findDcklRoot(process.cwd());
+  if (!dcklRoot) {
+    console.error("[dckl stop] no .dckl/ found in this tree");
     process.exitCode = 1;
     return;
   }
 
-  const portFile = join(deckelRoot, ".port");
+  const portFile = join(dcklRoot, ".port");
   const lock = readPortLock(portFile);
   if (!lock) {
-    console.log("[deckel stop] nothing to stop — no .port file");
+    console.log("[dckl stop] nothing to stop — no .port file");
     return;
   }
 
   if (!isProcessAlive(lock.pid)) {
     tryUnlink(portFile);
     console.log(
-      `[deckel stop] removed stale .port (pid ${lock.pid} was not running)`,
+      `[dckl stop] removed stale .port (pid ${lock.pid} was not running)`,
     );
     return;
   }
@@ -44,7 +44,7 @@ export async function runStop(opts: StopOptions = {}): Promise<void> {
   try {
     process.kill(lock.pid, "SIGTERM");
   } catch (err) {
-    console.error(`[deckel stop] failed to signal pid ${lock.pid}: ${(err as Error).message}`);
+    console.error(`[dckl stop] failed to signal pid ${lock.pid}: ${(err as Error).message}`);
     process.exitCode = 1;
     return;
   }
@@ -55,7 +55,7 @@ export async function runStop(opts: StopOptions = {}): Promise<void> {
     if (!isProcessAlive(lock.pid)) {
       tryUnlink(portFile);
       console.log(
-        `[deckel stop] stopped (pid ${lock.pid}, port ${lock.port})`,
+        `[dckl stop] stopped (pid ${lock.pid}, port ${lock.port})`,
       );
       return;
     }
@@ -68,7 +68,7 @@ export async function runStop(opts: StopOptions = {}): Promise<void> {
       process.kill(lock.pid, "SIGKILL");
     } catch (err) {
       console.error(
-        `[deckel stop] SIGKILL failed for pid ${lock.pid}: ${(err as Error).message}`,
+        `[dckl stop] SIGKILL failed for pid ${lock.pid}: ${(err as Error).message}`,
       );
       process.exitCode = 1;
       return;
@@ -76,12 +76,12 @@ export async function runStop(opts: StopOptions = {}): Promise<void> {
     // After SIGKILL, the graceful shutdown handler never runs — we clean up
     // .port ourselves.
     tryUnlink(portFile);
-    console.log(`[deckel stop] force-killed pid ${lock.pid}`);
+    console.log(`[dckl stop] force-killed pid ${lock.pid}`);
     return;
   }
 
   console.error(
-    `[deckel stop] pid ${lock.pid} did not exit after ${timeoutMs}ms. Retry with --force to escalate to SIGKILL.`,
+    `[dckl stop] pid ${lock.pid} did not exit after ${timeoutMs}ms. Retry with --force to escalate to SIGKILL.`,
   );
   process.exitCode = 1;
 }

@@ -1,5 +1,5 @@
 {
-  "name": "deckel",
+  "name": "dckl",
   "version": "0.1.0",
   "private": true,
   "description": "Local in-repo sprint & security cockpit for AI-assisted development",
@@ -15,7 +15,7 @@
     "lint": "biome check .",
     "format": "biome format --write .",
     "typecheck": "pnpm -r typecheck",
-    "deckel": "node packages/cli/dist/cli.js"
+    "dckl": "node packages/cli/dist/cli.js"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",

@@ -28,7 +28,7 @@
 
   /* Inside a <pre>, strip the inline-<code> chrome so fenced blocks do
      not double-stack backgrounds, borders, and padding. */
-  .prose-deckel pre > code,
+  .prose-dckl pre > code,
   pre > code {
     background: transparent;
     border: 0;

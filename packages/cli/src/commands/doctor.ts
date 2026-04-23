@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
-import { Store, isClaimFresh } from "@deckel/server";
-import { findDeckelRoot } from "@deckel/server/storage";
+import { Store, isClaimFresh } from "@dckl/server";
+import { findDcklRoot } from "@dckl/server/storage";
 
 type Severity = "ok" | "warn" | "error";
 
@@ -32,12 +32,12 @@ export async function runDoctor(opts: DoctorOptions = {}): Promise<{
   const findings: Finding[] = [];
   const cwd = opts.cwd ?? process.cwd();
 
-  const deckelRoot = findDeckelRoot(cwd);
-  if (!deckelRoot) {
+  const dcklRoot = findDcklRoot(cwd);
+  if (!dcklRoot) {
     findings.push({
       severity: "error",
-      code: "missing-deckel",
-      message: "No .deckel/ directory found in this tree. Run `pnpm deckel init` first.",
+      code: "missing-dckl",
+      message: "No .dckl/ directory found in this tree. Run `pnpm dckl init` first.",
     });
     if (!opts.silent) emit(findings, opts);
     return { code: 2, findings };
@@ -45,17 +45,17 @@ export async function runDoctor(opts: DoctorOptions = {}): Promise<{
 
   findings.push({
     severity: "ok",
-    code: "deckel-root",
-    message: `.deckel/ found at ${deckelRoot}`,
+    code: "dckl-root",
+    message: `.dckl/ found at ${dcklRoot}`,
   });
 
-  const store = new Store(deckelRoot);
+  const store = new Store(dcklRoot);
 
   await checkConfig(store, findings);
   await checkVision(store, findings);
-  await checkSprintsAndTasks(deckelRoot, store, findings);
-  checkActiveTaskPointer(deckelRoot, findings);
-  checkClaudeIntegration(deckelRoot, findings);
+  await checkSprintsAndTasks(dcklRoot, store, findings);
+  checkActiveTaskPointer(dcklRoot, findings);
+  checkClaudeIntegration(dcklRoot, findings);
 
   if (!opts.silent) emit(findings, opts);
 
@@ -91,7 +91,7 @@ async function checkVision(store: Store, findings: Finding[]): Promise<void> {
         severity: "ok",
         code: "no-vision",
         message:
-          "No VISION.md (optional) — create one via `pnpm deckel vision init` to anchor sprints.",
+          "No VISION.md (optional) — create one via `pnpm dckl vision init` to anchor sprints.",
       });
       return;
     }
@@ -121,16 +121,16 @@ async function checkVision(store: Store, findings: Finding[]): Promise<void> {
 }
 
 async function checkSprintsAndTasks(
-  deckelRoot: string,
+  dcklRoot: string,
   store: Store,
   findings: Finding[],
 ): Promise<void> {
-  const sprintsDir = join(deckelRoot, "sprints");
+  const sprintsDir = join(dcklRoot, "sprints");
   if (!existsSync(sprintsDir)) {
     findings.push({
       severity: "error",
       code: "no-sprints-dir",
-      message: "`.deckel/sprints/` directory missing.",
+      message: "`.dckl/sprints/` directory missing.",
     });
     return;
   }
@@ -151,7 +151,7 @@ async function checkSprintsAndTasks(
     findings.push({
       severity: "warn",
       code: "no-sprints",
-      message: "No sprints found. Create one under `.deckel/sprints/<slug>/index.md`.",
+      message: "No sprints found. Create one under `.dckl/sprints/<slug>/index.md`.",
     });
   } else {
     findings.push({
@@ -223,7 +223,7 @@ async function checkSprintsAndTasks(
           findings.push({
             severity: "warn",
             code: "stale-claim",
-            message: `\`${taskId}\` has a claim by \`${claim.by}\` whose heartbeat is ${hours}h old. Run \`pnpm deckel task release ${taskId}\`.`,
+            message: `\`${taskId}\` has a claim by \`${claim.by}\` whose heartbeat is ${hours}h old. Run \`pnpm dckl task release ${taskId}\`.`,
           });
         } else if (!isClaimFresh(claim)) {
           findings.push({
@@ -239,8 +239,8 @@ async function checkSprintsAndTasks(
   }
 }
 
-function checkActiveTaskPointer(deckelRoot: string, findings: Finding[]): void {
-  const activePath = join(deckelRoot, ".active-task");
+function checkActiveTaskPointer(dcklRoot: string, findings: Finding[]): void {
+  const activePath = join(dcklRoot, ".active-task");
   if (!existsSync(activePath)) {
     findings.push({
       severity: "ok",
@@ -286,7 +286,7 @@ function checkActiveTaskPointer(deckelRoot: string, findings: Finding[]): void {
     return;
   }
 
-  const taskFile = join(deckelRoot, "sprints", sid, "tasks", `${tid}.md`);
+  const taskFile = join(dcklRoot, "sprints", sid, "tasks", `${tid}.md`);
   if (!existsSync(taskFile)) {
     findings.push({
       severity: "warn",
@@ -303,15 +303,15 @@ function checkActiveTaskPointer(deckelRoot: string, findings: Finding[]): void {
   });
 }
 
-function checkClaudeIntegration(deckelRoot: string, findings: Finding[]): void {
-  const projectRoot = resolve(deckelRoot, "..");
+function checkClaudeIntegration(dcklRoot: string, findings: Finding[]): void {
+  const projectRoot = resolve(dcklRoot, "..");
   const settingsPath = join(projectRoot, ".claude", "settings.json");
   if (!existsSync(settingsPath)) {
     findings.push({
       severity: "warn",
       code: "no-claude-settings",
       message:
-        "`.claude/settings.json` missing — re-run `pnpm deckel init` to install the auto-heartbeat hook.",
+        "`.claude/settings.json` missing — re-run `pnpm dckl init` to install the auto-heartbeat hook.",
     });
     return;
   }
@@ -332,35 +332,35 @@ function checkClaudeIntegration(deckelRoot: string, findings: Finding[]): void {
   const matchers = Array.isArray(hooks) ? hooks : [];
   const hasHeartbeat = matchers.some((m) => {
     const entries = (m as { hooks?: Array<{ command?: string }> }).hooks;
-    return entries?.some((h) => h.command?.includes("deckel heartbeat"));
+    return entries?.some((h) => h.command?.includes("dckl heartbeat"));
   });
   if (!hasHeartbeat) {
     findings.push({
       severity: "warn",
       code: "hook-not-installed",
       message:
-        "PostToolUse `deckel heartbeat` hook missing from `.claude/settings.json`. The UI's amber-pulse will not stay alive during AI sessions. Re-run `pnpm deckel init`.",
+        "PostToolUse `dckl heartbeat` hook missing from `.claude/settings.json`. The UI's amber-pulse will not stay alive during AI sessions. Re-run `pnpm dckl init`.",
     });
   } else {
     findings.push({
       severity: "ok",
       code: "hook",
-      message: "PostToolUse `deckel heartbeat` hook is installed.",
+      message: "PostToolUse `dckl heartbeat` hook is installed.",
     });
   }
 
-  const skillPath = join(projectRoot, ".claude", "skills", "deckel", "SKILL.md");
+  const skillPath = join(projectRoot, ".claude", "skills", "dckl", "SKILL.md");
   if (!existsSync(skillPath)) {
     findings.push({
       severity: "warn",
       code: "no-skill",
-      message: ".claude/skills/deckel/SKILL.md missing. Re-run `pnpm deckel init`.",
+      message: ".claude/skills/dckl/SKILL.md missing. Re-run `pnpm dckl init`.",
     });
   } else {
     findings.push({
       severity: "ok",
       code: "skill",
-      message: "Deckel skill installed for Claude Code.",
+      message: "dckl skill installed for Claude Code.",
     });
   }
 }
@@ -371,7 +371,7 @@ function emit(findings: Finding[], opts: DoctorOptions): void {
     return;
   }
 
-  const out: string[] = ["# deckel doctor", ""];
+  const out: string[] = ["# dckl doctor", ""];
   for (const f of findings) {
     out.push(`${icon(f.severity)} **${f.code}** — ${f.message}`);
   }

@@ -55,7 +55,7 @@ async function serveIndex(c: Parameters<MiddlewareHandler>[0], uiDir: string, to
 }
 
 function injectToken(html: string, token: string): string {
-  const tag = `<meta name="deckel-token" content="${escapeAttr(token)}">`;
+  const tag = `<meta name="dckl-token" content="${escapeAttr(token)}">`;
   if (/<head[^>]*>/i.test(html)) {
     return html.replace(/<head([^>]*)>/i, `<head$1>\n    ${tag}`);
   }

@@ -9,7 +9,7 @@ const uiDistDst = resolve(cliRoot, "dist", "ui");
 
 if (!existsSync(uiDistSrc)) {
   console.error(`[copy-ui] UI dist not found at ${uiDistSrc}`);
-  console.error("[copy-ui] Build @deckel/ui first (pnpm --filter @deckel/ui build)");
+  console.error("[copy-ui] Build @dckl/ui first (pnpm --filter @dckl/ui build)");
   process.exit(1);
 }
 

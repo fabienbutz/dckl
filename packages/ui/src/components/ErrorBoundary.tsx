@@ -11,7 +11,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   override componentDidCatch(error: Error): void {
-    console.error("[deckel] uncaught render error", error);
+    console.error("[dckl] uncaught render error", error);
   }
 
   override render() {

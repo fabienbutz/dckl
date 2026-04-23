@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { findDeckelRoot } from "@deckel/server/storage";
+import { findDcklRoot } from "@dckl/server/storage";
 import { readPortLock } from "../port-discovery.js";
 
 type TaskLock = { sprint_id: string; task_id: string };
@@ -10,46 +10,46 @@ export type TaskCmdOptions = {
 };
 
 export async function runTaskClaim(taskId: string, opts: TaskCmdOptions = {}): Promise<void> {
-  const deckelRoot = requireDeckelRoot();
-  const sprintId = findSprintForTask(deckelRoot, taskId);
+  const dcklRoot = requiredcklRoot();
+  const sprintId = findSprintForTask(dcklRoot, taskId);
   if (!sprintId) {
-    console.error(`[deckel] task ${taskId} not found in any sprint`);
+    console.error(`[dckl] task ${taskId} not found in any sprint`);
     process.exitCode = 1;
     return;
   }
 
   writeFileSync(
-    join(deckelRoot, ".active-task"),
+    join(dcklRoot, ".active-task"),
     `${JSON.stringify({ sprint_id: sprintId, task_id: taskId } satisfies TaskLock, null, 2)}\n`,
     "utf8",
   );
 
   const by = opts.by ?? "claude-code";
-  const result = await apiPost(deckelRoot, `/api/sprints/${sprintId}/tasks/${taskId}/claim`, {
+  const result = await apiPost(dcklRoot, `/api/sprints/${sprintId}/tasks/${taskId}/claim`, {
     by,
   });
   if (!result.ok) {
     if (isServerDown(result)) {
-      reportServerDown(`pnpm deckel task claim ${taskId}`);
+      reportServerDown(`pnpm dckl task claim ${taskId}`);
     } else {
-      console.error(`[deckel] claim failed: ${result.status} ${result.error}`);
+      console.error(`[dckl] claim failed: ${result.status} ${result.error}`);
     }
     process.exitCode = 1;
     return;
   }
-  console.log(`[deckel] claimed ${taskId} as ${by}`);
+  console.log(`[dckl] claimed ${taskId} as ${by}`);
 }
 
 export async function runTaskRelease(taskId: string): Promise<void> {
-  const deckelRoot = requireDeckelRoot();
-  const sprintId = findSprintForTask(deckelRoot, taskId);
+  const dcklRoot = requiredcklRoot();
+  const sprintId = findSprintForTask(dcklRoot, taskId);
   if (!sprintId) {
-    console.error(`[deckel] task ${taskId} not found in any sprint`);
+    console.error(`[dckl] task ${taskId} not found in any sprint`);
     process.exitCode = 1;
     return;
   }
 
-  const activePath = join(deckelRoot, ".active-task");
+  const activePath = join(dcklRoot, ".active-task");
   if (existsSync(activePath)) {
     try {
       unlinkSync(activePath);
@@ -58,27 +58,27 @@ export async function runTaskRelease(taskId: string): Promise<void> {
     }
   }
 
-  const result = await apiPost(deckelRoot, `/api/sprints/${sprintId}/tasks/${taskId}/release`);
+  const result = await apiPost(dcklRoot, `/api/sprints/${sprintId}/tasks/${taskId}/release`);
   if (!result.ok) {
     if (isServerDown(result)) {
-      reportServerDown(`pnpm deckel task release ${taskId}`);
+      reportServerDown(`pnpm dckl task release ${taskId}`);
     } else {
-      console.error(`[deckel] release failed: ${result.status} ${result.error}`);
+      console.error(`[dckl] release failed: ${result.status} ${result.error}`);
     }
     process.exitCode = 1;
     return;
   }
-  console.log(`[deckel] released ${taskId}`);
+  console.log(`[dckl] released ${taskId}`);
 }
 
 export async function runHeartbeat(opts: { silent?: boolean } = {}): Promise<void> {
-  const deckelRoot = findDeckelRoot(process.cwd());
-  if (!deckelRoot) {
-    if (!opts.silent) console.error("[deckel] no .deckel/ found");
+  const dcklRoot = findDcklRoot(process.cwd());
+  if (!dcklRoot) {
+    if (!opts.silent) console.error("[dckl] no .dckl/ found");
     return;
   }
 
-  const activePath = join(deckelRoot, ".active-task");
+  const activePath = join(dcklRoot, ".active-task");
   if (!existsSync(activePath)) {
     // No active task — silent no-op (used by hook).
     return;
@@ -88,30 +88,30 @@ export async function runHeartbeat(opts: { silent?: boolean } = {}): Promise<voi
   try {
     lock = JSON.parse(readFileSync(activePath, "utf8")) as TaskLock;
   } catch {
-    if (!opts.silent) console.error("[deckel] malformed .active-task");
+    if (!opts.silent) console.error("[dckl] malformed .active-task");
     return;
   }
 
   const result = await apiPost(
-    deckelRoot,
+    dcklRoot,
     `/api/sprints/${lock.sprint_id}/tasks/${lock.task_id}/heartbeat`,
   );
   if (!result.ok && !opts.silent) {
-    console.error(`[deckel] heartbeat failed: ${result.status} ${result.error}`);
+    console.error(`[dckl] heartbeat failed: ${result.status} ${result.error}`);
   }
 }
 
-function requireDeckelRoot(): string {
-  const root = findDeckelRoot(process.cwd());
+function requiredcklRoot(): string {
+  const root = findDcklRoot(process.cwd());
   if (!root) {
-    console.error("[deckel] no .deckel/ found — run `deckel init` first");
+    console.error("[dckl] no .dckl/ found — run `dckl init` first");
     process.exit(1);
   }
   return root;
 }
 
-function findSprintForTask(deckelRoot: string, taskId: string): string | null {
-  const sprintsDir = join(deckelRoot, "sprints");
+function findSprintForTask(dcklRoot: string, taskId: string): string | null {
+  const sprintsDir = join(dcklRoot, "sprints");
   if (!existsSync(sprintsDir)) return null;
   for (const entry of readdirSync(sprintsDir)) {
     const taskFile = join(sprintsDir, entry, "tasks", `${taskId}.md`);
@@ -138,10 +138,10 @@ type ApiResult<T = unknown> = {
  */
 function reportServerDown(retryCommand: string): void {
   process.stderr.write("\n");
-  process.stderr.write("  ✗ deckel: server not running.\n");
+  process.stderr.write("  ✗ dckl: server not running.\n");
   process.stderr.write("\n");
   process.stderr.write("    Start the server in another terminal:\n");
-  process.stderr.write("        pnpm deckel\n");
+  process.stderr.write("        pnpm dckl\n");
   process.stderr.write("\n");
   process.stderr.write("    Then retry:\n");
   process.stderr.write(`        ${retryCommand}\n`);
@@ -153,44 +153,44 @@ function isServerDown(result: ApiResult<unknown>): boolean {
 }
 
 async function apiPost<T = unknown>(
-  deckelRoot: string,
+  dcklRoot: string,
   path: string,
   body?: unknown,
 ): Promise<ApiResult<T>> {
-  return apiRequest<T>(deckelRoot, "POST", path, { body });
+  return apiRequest<T>(dcklRoot, "POST", path, { body });
 }
 
-async function apiGet<T = unknown>(deckelRoot: string, path: string): Promise<ApiResult<T>> {
-  return apiRequest<T>(deckelRoot, "GET", path);
+async function apiGet<T = unknown>(dcklRoot: string, path: string): Promise<ApiResult<T>> {
+  return apiRequest<T>(dcklRoot, "GET", path);
 }
 
 async function apiPatch<T = unknown>(
-  deckelRoot: string,
+  dcklRoot: string,
   path: string,
   body: unknown,
   ifMatch: string,
 ): Promise<ApiResult<T>> {
-  return apiRequest<T>(deckelRoot, "PATCH", path, { body, ifMatch });
+  return apiRequest<T>(dcklRoot, "PATCH", path, { body, ifMatch });
 }
 
 async function apiRequest<T>(
-  deckelRoot: string,
+  dcklRoot: string,
   method: string,
   path: string,
   opts: { body?: unknown; ifMatch?: string } = {},
 ): Promise<ApiResult<T>> {
-  const portLock = readPortLock(join(deckelRoot, ".port"));
+  const portLock = readPortLock(join(dcklRoot, ".port"));
   if (!portLock) {
     return {
       ok: false,
       status: 0,
-      error: ".deckel/.port missing",
+      error: ".dckl/.port missing",
       kind: "SERVER_DOWN",
     };
   }
 
   const headers: Record<string, string> = {
-    "X-Deckel-Token": portLock.token,
+    "X-dckl-Token": portLock.token,
   };
   if (opts.body !== undefined) headers["Content-Type"] = "application/json";
   if (opts.ifMatch) headers["If-Match"] = opts.ifMatch;
@@ -229,7 +229,7 @@ async function apiRequest<T>(
   }
 }
 
-// ─── deckel check <task-id> <check-id> ──────────────────────────────────────
+// ─── dckl check <task-id> <check-id> ──────────────────────────────────────
 
 type ReminderEntry = { id: string; checked: boolean; notes?: string };
 type TestEntry = { id: string; label: string; checked: boolean };
@@ -241,23 +241,23 @@ type TaskMetaShape = {
 type TaskShape = { meta: TaskMetaShape & Record<string, unknown> };
 
 export async function runCheck(taskId: string, checkId: string): Promise<void> {
-  const deckelRoot = requireDeckelRoot();
-  const sprintId = findSprintForTask(deckelRoot, taskId);
+  const dcklRoot = requiredcklRoot();
+  const sprintId = findSprintForTask(dcklRoot, taskId);
   if (!sprintId) {
-    console.error(`[deckel] task ${taskId} not found in any sprint`);
+    console.error(`[dckl] task ${taskId} not found in any sprint`);
     process.exitCode = 1;
     return;
   }
 
   const got = await apiGet<TaskShape>(
-    deckelRoot,
+    dcklRoot,
     `/api/sprints/${sprintId}/tasks/${taskId}`,
   );
   if (!got.ok || !got.data || !got.etag) {
     if (isServerDown(got)) {
-      reportServerDown(`pnpm deckel check ${taskId} ${checkId}`);
+      reportServerDown(`pnpm dckl check ${taskId} ${checkId}`);
     } else {
-      console.error(`[deckel] failed to read ${taskId}: ${got.status} ${got.error}`);
+      console.error(`[dckl] failed to read ${taskId}: ${got.status} ${got.error}`);
     }
     process.exitCode = 1;
     return;
@@ -272,7 +272,7 @@ export async function runCheck(taskId: string, checkId: string): Promise<void> {
       ...meta.security_checks.map((r) => `  reminder · ${r.id}`),
       ...meta.test_criteria.map((t) => `  test     · ${t.id} — ${t.label}`),
     ];
-    console.error(`[deckel] no check "${checkId}" on ${taskId}. Available:`);
+    console.error(`[dckl] no check "${checkId}" on ${taskId}. Available:`);
     console.error(available.join("\n"));
     process.exitCode = 1;
     return;
@@ -299,52 +299,52 @@ export async function runCheck(taskId: string, checkId: string): Promise<void> {
   }
 
   const res = await apiPatch(
-    deckelRoot,
+    dcklRoot,
     `/api/sprints/${sprintId}/tasks/${taskId}`,
     patch,
     got.etag,
   );
   if (!res.ok) {
     if (isServerDown(res)) {
-      reportServerDown(`pnpm deckel check ${taskId} ${checkId}`);
+      reportServerDown(`pnpm dckl check ${taskId} ${checkId}`);
     } else {
-      console.error(`[deckel] check toggle failed: ${res.status} ${res.error}`);
+      console.error(`[dckl] check toggle failed: ${res.status} ${res.error}`);
     }
     process.exitCode = 1;
     return;
   }
   console.log(
-    `[deckel] ${taskId} ${reminder ? "reminder" : "test"} \`${checkId}\`: ${prev ? "checked → unchecked" : "unchecked → checked"}`,
+    `[dckl] ${taskId} ${reminder ? "reminder" : "test"} \`${checkId}\`: ${prev ? "checked → unchecked" : "unchecked → checked"}`,
   );
 }
 
-// ─── deckel correction add <task-id> "<text>" ───────────────────────────────
+// ─── dckl correction add <task-id> "<text>" ───────────────────────────────
 
 export async function runCorrectionAdd(taskId: string, text: string): Promise<void> {
-  const deckelRoot = requireDeckelRoot();
-  const sprintId = findSprintForTask(deckelRoot, taskId);
+  const dcklRoot = requiredcklRoot();
+  const sprintId = findSprintForTask(dcklRoot, taskId);
   if (!sprintId) {
-    console.error(`[deckel] task ${taskId} not found in any sprint`);
+    console.error(`[dckl] task ${taskId} not found in any sprint`);
     process.exitCode = 1;
     return;
   }
 
   const trimmed = text.trim();
   if (!trimmed) {
-    console.error("[deckel] correction text must not be empty");
+    console.error("[dckl] correction text must not be empty");
     process.exitCode = 1;
     return;
   }
 
   const got = await apiGet<TaskShape>(
-    deckelRoot,
+    dcklRoot,
     `/api/sprints/${sprintId}/tasks/${taskId}`,
   );
   if (!got.ok || !got.data || !got.etag) {
     if (isServerDown(got)) {
-      reportServerDown(`pnpm deckel correction add ${taskId} "${trimmed}"`);
+      reportServerDown(`pnpm dckl correction add ${taskId} "${trimmed}"`);
     } else {
-      console.error(`[deckel] failed to read ${taskId}: ${got.status} ${got.error}`);
+      console.error(`[dckl] failed to read ${taskId}: ${got.status} ${got.error}`);
     }
     process.exitCode = 1;
     return;
@@ -355,21 +355,21 @@ export async function runCorrectionAdd(taskId: string, text: string): Promise<vo
   const correction = { id: nextId, text: trimmed, open: true, target_sprint: null };
 
   const res = await apiPatch(
-    deckelRoot,
+    dcklRoot,
     `/api/sprints/${sprintId}/tasks/${taskId}`,
     { corrections: [...existing, correction] },
     got.etag,
   );
   if (!res.ok) {
     if (isServerDown(res)) {
-      reportServerDown(`pnpm deckel correction add ${taskId} "${trimmed}"`);
+      reportServerDown(`pnpm dckl correction add ${taskId} "${trimmed}"`);
     } else {
-      console.error(`[deckel] correction add failed: ${res.status} ${res.error}`);
+      console.error(`[dckl] correction add failed: ${res.status} ${res.error}`);
     }
     process.exitCode = 1;
     return;
   }
-  console.log(`[deckel] ${taskId} correction \`${nextId}\`: ${trimmed}`);
+  console.log(`[dckl] ${taskId} correction \`${nextId}\`: ${trimmed}`);
 }
 
 function nextCorrectionId(existing: Array<{ id: string }>): string {

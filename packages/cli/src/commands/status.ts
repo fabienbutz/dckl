@@ -1,9 +1,9 @@
 import { execSync } from "node:child_process";
 import { existsSync, statSync } from "node:fs";
 import { resolve } from "node:path";
-import { Store, isClaimFresh } from "@deckel/server";
-import { findDeckelRoot } from "@deckel/server/storage";
-import type { SprintMeta, TaskMeta, Vision } from "@deckel/server/schema";
+import { Store, isClaimFresh } from "@dckl/server";
+import { findDcklRoot } from "@dckl/server/storage";
+import type { SprintMeta, TaskMeta, Vision } from "@dckl/server/schema";
 
 export type StatusOptions = {
   gitDays?: number;
@@ -11,21 +11,21 @@ export type StatusOptions = {
 };
 
 export async function runStatus(opts: StatusOptions = {}): Promise<void> {
-  const deckelRoot = findDeckelRoot(process.cwd());
-  if (!deckelRoot) {
-    console.error("[deckel] no .deckel/ found — run `deckel init` first");
+  const dcklRoot = findDcklRoot(process.cwd());
+  if (!dcklRoot) {
+    console.error("[dckl] no .dckl/ found — run `dckl init` first");
     process.exitCode = 1;
     return;
   }
 
-  const store = new Store(deckelRoot);
+  const store = new Store(dcklRoot);
   const gitDays = opts.gitDays ?? 14;
 
   let vision: Vision | null = null;
   try {
     vision = await store.getVision();
   } catch (err) {
-    console.warn(`[deckel] VISION.md exists but failed to parse: ${(err as Error).message}`);
+    console.warn(`[dckl] VISION.md exists but failed to parse: ${(err as Error).message}`);
   }
 
   const sprintMetas = await store.listSprints();
@@ -40,8 +40,8 @@ export async function runStatus(opts: StatusOptions = {}): Promise<void> {
     (t) => t.claim && isClaimFresh(t.claim),
   );
 
-  const gitRecent = gatherGitRecent(deckelRoot, gitDays);
-  const orphanTodos = gatherOrphanTodos(deckelRoot);
+  const gitRecent = gatherGitRecent(dcklRoot, gitDays);
+  const orphanTodos = gatherOrphanTodos(dcklRoot);
 
   if (opts.json) {
     console.log(
@@ -70,7 +70,7 @@ export async function runStatus(opts: StatusOptions = {}): Promise<void> {
   }
 
   const out: string[] = [];
-  out.push(`# Deckel Status — ${new Date().toISOString().slice(0, 10)}`);
+  out.push(`# dckl Status — ${new Date().toISOString().slice(0, 10)}`);
   out.push("");
 
   if (vision) {
@@ -89,7 +89,7 @@ export async function runStatus(opts: StatusOptions = {}): Promise<void> {
   } else {
     out.push("## Vision");
     out.push("");
-    out.push("_No VISION.md — create `.deckel/VISION.md` to anchor sprints._");
+    out.push("_No VISION.md — create `.dckl/VISION.md` to anchor sprints._");
     out.push("");
   }
 
@@ -167,7 +167,7 @@ async function collectTasks(store: Store, sprintMeta: SprintMeta): Promise<TaskM
       const { task } = await store.getTask(sprintMeta.id, taskId);
       result.push(task.meta);
     } catch {
-      // Skip missing/malformed tasks — surfaced via `deckel doctor` (future).
+      // Skip missing/malformed tasks — surfaced via `dckl doctor` (future).
     }
   }
   return result;
@@ -203,10 +203,10 @@ function staleAge(heartbeat: string): string {
 }
 
 function gatherGitRecent(
-  deckelRoot: string,
+  dcklRoot: string,
   days: number,
 ): { commits: string[] } | null {
-  const projectRoot = resolve(deckelRoot, "..");
+  const projectRoot = resolve(dcklRoot, "..");
   if (!existsSync(resolve(projectRoot, ".git"))) return null;
   try {
     const out = execSync(`git log --oneline --since="${days} days ago"`, {
@@ -225,8 +225,8 @@ function gatherGitRecent(
   }
 }
 
-function gatherOrphanTodos(deckelRoot: string): string[] {
-  const projectRoot = resolve(deckelRoot, "..");
+function gatherOrphanTodos(dcklRoot: string): string[] {
+  const projectRoot = resolve(dcklRoot, "..");
   const candidateDirs = ["src", "app", "packages", "lib"].filter((d) =>
     existsSync(resolve(projectRoot, d)),
   );

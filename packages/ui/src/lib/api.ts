@@ -7,7 +7,7 @@ import type {
   SprintMeta,
   Task,
   TaskMeta,
-} from "@deckel/server/schema";
+} from "@dckl/server/schema";
 
 export type WithEtag<T> = { data: T; etag: string };
 
@@ -22,7 +22,7 @@ export class ApiError extends Error {
 }
 
 // ─── CSRF token resolution ──────────────────────────────────────────────────
-// In production (UI served by the deckel CLI), the token is injected as a
+// In production (UI served by the dckl CLI), the token is injected as a
 // meta tag in index.html. In dev (Vite on :5173 proxying to the CLI), no
 // injection happens — we fetch /api/token once and cache the result.
 
@@ -34,7 +34,7 @@ async function getCsrfToken(): Promise<string> {
 
   // Prod path: meta tag injected by Hono's uiHandler.
   if (typeof document !== "undefined") {
-    const meta = document.querySelector('meta[name="deckel-token"]');
+    const meta = document.querySelector('meta[name="dckl-token"]');
     const val = meta?.getAttribute("content");
     if (val) {
       cachedToken = val;
@@ -79,7 +79,7 @@ async function request<T>(
   const res = await fetch(path, {
     ...rest,
     headers: {
-      "X-Deckel-Token": token,
+      "X-dckl-Token": token,
       ...(ifMatch ? { "If-Match": ifMatch } : {}),
       ...(rest.body ? { "Content-Type": "application/json" } : {}),
       ...(headers ?? {}),
@@ -102,7 +102,7 @@ export type StackEntry = {
 
 async function requestText(path: string): Promise<{ text: string; etag: string }> {
   const token = await getCsrfToken();
-  const res = await fetch(path, { headers: { "X-Deckel-Token": token } });
+  const res = await fetch(path, { headers: { "X-dckl-Token": token } });
   if (!res.ok) throw new ApiError(res.status, await res.text());
   return { text: await res.text(), etag: res.headers.get("ETag") ?? "" };
 }

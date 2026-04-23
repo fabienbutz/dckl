@@ -9,14 +9,14 @@ import { parseJourney, stringifyJourney } from "../src/storage/journey-io.js";
 
 const TOKEN = "test-csrf-token";
 
-function setupDeckel(): { app: ReturnType<typeof createApp>["app"]; deckelRoot: string; cleanup: () => void } {
-  const tmp = mkdtempSync(join(tmpdir(), "deckel-journey-"));
-  const deckelRoot = join(tmp, ".deckel");
-  mkdirSync(deckelRoot, { recursive: true });
-  mkdirSync(join(deckelRoot, "sprints"), { recursive: true });
-  mkdirSync(join(deckelRoot, ".trash"), { recursive: true });
+function setupdckl(): { app: ReturnType<typeof createApp>["app"]; dcklRoot: string; cleanup: () => void } {
+  const tmp = mkdtempSync(join(tmpdir(), "dckl-journey-"));
+  const dcklRoot = join(tmp, ".dckl");
+  mkdirSync(dcklRoot, { recursive: true });
+  mkdirSync(join(dcklRoot, "sprints"), { recursive: true });
+  mkdirSync(join(dcklRoot, ".trash"), { recursive: true });
   writeFileSync(
-    join(deckelRoot, "config.yaml"),
+    join(dcklRoot, "config.yaml"),
     stringifyConfig({
       schema: 1,
       project: { name: "T", created: "2026-04-22", version: 1 },
@@ -25,8 +25,8 @@ function setupDeckel(): { app: ReturnType<typeof createApp>["app"]; deckelRoot: 
       defaults: { security_check_template: "default", test_categories: ["unit"] },
     }),
   );
-  const { app } = createApp({ deckelRoot, csrfToken: TOKEN });
-  return { app, deckelRoot, cleanup: () => rmSync(tmp, { recursive: true, force: true }) };
+  const { app } = createApp({ dcklRoot, csrfToken: TOKEN });
+  return { app, dcklRoot, cleanup: () => rmSync(tmp, { recursive: true, force: true }) };
 }
 
 describe("journey round-trip", () => {
@@ -66,9 +66,9 @@ describe("journey round-trip", () => {
 });
 
 describe("journey API (POST/GET/PATCH with CSRF + ETag)", () => {
-  let h: ReturnType<typeof setupDeckel>;
+  let h: ReturnType<typeof setupdckl>;
   beforeEach(() => {
-    h = setupDeckel();
+    h = setupdckl();
   });
   afterEach(() => h.cleanup());
 
@@ -84,7 +84,7 @@ describe("journey API (POST/GET/PATCH with CSRF + ETag)", () => {
     const res = await h.app.request("/api/journeys", {
       method: "POST",
       headers: {
-        "X-Deckel-Token": TOKEN,
+        "X-dckl-Token": TOKEN,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(createBody),
@@ -113,7 +113,7 @@ describe("journey API (POST/GET/PATCH with CSRF + ETag)", () => {
     const res = await h.app.request("/api/journeys", {
       method: "POST",
       headers: {
-        "X-Deckel-Token": TOKEN,
+        "X-dckl-Token": TOKEN,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ name: "no id" }),
@@ -126,7 +126,7 @@ describe("journey API (POST/GET/PATCH with CSRF + ETag)", () => {
     const res = await h.app.request("/api/journeys", {
       method: "POST",
       headers: {
-        "X-Deckel-Token": TOKEN,
+        "X-dckl-Token": TOKEN,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(createBody),
@@ -160,7 +160,7 @@ describe("journey API (POST/GET/PATCH with CSRF + ETag)", () => {
     const res = await h.app.request("/api/journeys/signup", {
       method: "PATCH",
       headers: {
-        "X-Deckel-Token": TOKEN,
+        "X-dckl-Token": TOKEN,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ name: "new" }),
@@ -173,7 +173,7 @@ describe("journey API (POST/GET/PATCH with CSRF + ETag)", () => {
     const res = await h.app.request("/api/journeys/signup", {
       method: "PATCH",
       headers: {
-        "X-Deckel-Token": TOKEN,
+        "X-dckl-Token": TOKEN,
         "Content-Type": "application/json",
         "If-Match": '"stale-etag-never-matches"',
       },
@@ -187,7 +187,7 @@ describe("journey API (POST/GET/PATCH with CSRF + ETag)", () => {
     const res = await h.app.request("/api/journeys/signup", {
       method: "PATCH",
       headers: {
-        "X-Deckel-Token": TOKEN,
+        "X-dckl-Token": TOKEN,
         "Content-Type": "application/json",
         "If-Match": firstEtag,
       },
