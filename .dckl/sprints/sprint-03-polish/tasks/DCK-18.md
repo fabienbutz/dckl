@@ -4,7 +4,7 @@ id: DCK-18
 sprint_id: sprint-03-polish
 title: 'Umbenennung `deckel` → `dckl` (Files, Packages, CLI, Skill)'
 type: chore
-status: in_progress
+status: done
 security_checks:
   - id: secrets-not-committed
     checked: true
@@ -83,7 +83,7 @@ pre_flight:
   - >-
     Der `clnt`-MCP-Namespace im User-Setup ist ein eigenständiges Projekt und
     bleibt unberührt. Dieser Rename ist kein Merge.
-updated: '2026-04-23T14:22:45.547Z'
+updated: '2026-04-23T14:53:01.160Z'
 ---
 
 ## Worum es geht

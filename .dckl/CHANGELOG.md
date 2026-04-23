@@ -2,6 +2,8 @@
 
 ## 2026-04-23
 
+- **16:53** · `DCK-18` · status `in_progress` → `done`
+
 - **16:52** · `DCK-19` · status `in_progress` → `done`
 
 - **16:52** · `DCK-19` · test `no-scope-drift` → checked

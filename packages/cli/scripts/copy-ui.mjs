@@ -19,3 +19,15 @@ if (existsSync(uiDistDst)) {
 
 cpSync(uiDistSrc, uiDistDst, { recursive: true });
 console.log(`[copy-ui] Copied ${uiDistSrc} → ${uiDistDst}`);
+
+// Assets that `dckl init` writes into a fresh project (SKILL.md,
+// managed-block snippet). Kept as files so edits in .claude/skills/
+// propagate into installs rather than being embedded in TS literals
+// that inevitably go stale.
+const assetsSrc = resolve(cliRoot, "src", "assets");
+const assetsDst = resolve(cliRoot, "dist", "assets");
+if (existsSync(assetsSrc)) {
+  if (existsSync(assetsDst)) rmSync(assetsDst, { recursive: true, force: true });
+  cpSync(assetsSrc, assetsDst, { recursive: true });
+  console.log(`[copy-ui] Copied ${assetsSrc} → ${assetsDst}`);
+}
