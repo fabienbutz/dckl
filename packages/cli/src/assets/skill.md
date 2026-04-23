@@ -29,26 +29,26 @@ the block is a summary primer, this file is the full specification.
 All commands below are implemented. Each is safe to invoke directly.
 
 ```bash
-pnpm dckl                                       # default = serve; UI on :4321
-pnpm dckl status                                # vision, sprint, gaps, recent
-pnpm dckl export <TASK-ID>                      # structured prompt for this task
-pnpm dckl task claim <TASK-ID>                  # mark live-worked, amber pulse
-pnpm dckl task release <TASK-ID>                # clear the claim (status unchanged)
-pnpm dckl task close <TASK-ID> [--force]        # status=done + release claim
-pnpm dckl check <TASK-ID> <check-id>            # toggle a reminder or test check
-pnpm dckl correction add <TASK-ID> "<text>"     # log an issue mid-work
-pnpm dckl correction resolve <TASK-ID> <cid>    # mark a correction resolved
+dckl                                       # default = serve; UI on :4321
+dckl status                                # vision, sprint, gaps, recent
+dckl export <TASK-ID>                      # structured prompt for this task
+dckl task claim <TASK-ID>                  # mark live-worked, amber pulse
+dckl task release <TASK-ID>                # clear the claim (status unchanged)
+dckl task close <TASK-ID> [--force]        # status=done + release claim
+dckl check <TASK-ID> <check-id>            # toggle a reminder or test check
+dckl correction add <TASK-ID> "<text>"     # log an issue mid-work
+dckl correction resolve <TASK-ID> <cid>    # mark a correction resolved
                                                 # + optional --target-sprint <slug>
-pnpm dckl sprint close <SPRINT-ID> [--force]    # archive sprint + write SUMMARY.md
+dckl sprint close <SPRINT-ID> [--force]    # archive sprint + write SUMMARY.md
                                                 # + optional --dry-run
-pnpm dckl doctor [--fix]                        # audit layout + auto-clear orphans
-pnpm dckl journey new <slug>                    # scaffold a journey
-pnpm dckl journey list                          # list journeys with step counts
-pnpm dckl vision init                           # scaffold VISION.md
-pnpm dckl stop                                  # gracefully stop the running server
+dckl doctor [--fix]                        # audit layout + auto-clear orphans
+dckl journey new <slug>                    # scaffold a journey
+dckl journey list                          # list journeys with step counts
+dckl vision init                           # scaffold VISION.md
+dckl stop                                  # gracefully stop the running server
 ```
 
-`pnpm dckl heartbeat` also exists but fires automatically from the
+`dckl heartbeat` also exists but fires automatically from the
 PostToolUse hook. **Never invoke it yourself.**
 
 The UI exposes a Stack / Docs / Memory reader (`MarkdownReader` over
@@ -91,7 +91,7 @@ cat .dckl/.active-task 2>/dev/null || echo "(absent)"
 sed -n '/^---$/,/^---$/p' .dckl/sprints/<SPRINT>/tasks/<TASK-ID>.md
 ```
 
-If Signal 2 reports "server down", tell the user: **"Start `pnpm dckl`
+If Signal 2 reports "server down", tell the user: **"Start `dckl`
 in another terminal, then retry."** Do not proceed with writes — the
 amber-pulse indicator will be stale and the claim won't stick.
 
@@ -125,19 +125,19 @@ Read target task's claim field.
   └─ claim present, heartbeat > 5 min old → safe to take over; continue
 
 .active-task already points at a DIFFERENT task?
-  ├─ YES → `pnpm dckl task release <OLD-ID>` first, then continue
+  ├─ YES → `dckl task release <OLD-ID>` first, then continue
   └─ NO  → continue
 ```
 
 ### Step 3 — Claim
 
 ```bash
-pnpm dckl task claim <TASK-ID>
+dckl task claim <TASK-ID>
 ```
 
 - **Succeeds (exit 0):** proceed to Step 4.
 - **Fails:** stop. Tell the user the exact error. Common cause: server
-  down (Signal 2) — ask them to start `pnpm dckl`.
+  down (Signal 2) — ask them to start `dckl`.
 
 ### Step 4 — Read task, set boundaries
 
@@ -159,7 +159,7 @@ list require either (a) asking the user first, or (b) logging a
 correction first:
 
 ```bash
-pnpm dckl correction add <TASK-ID> "had to edit <path> because <reason>"
+dckl correction add <TASK-ID> "had to edit <path> because <reason>"
 ```
 
 When `context_files` is absent or empty, scope from the title + body;
@@ -168,10 +168,10 @@ when in doubt, ask.
 ### Step 5 — Implement
 
 - When you satisfy an acceptance criterion, **flip its check**:
-  `pnpm dckl check <TASK-ID> <check-id>`. The check ID matches an
+  `dckl check <TASK-ID> <check-id>`. The check ID matches an
   entry in `security_checks` or `test_criteria`.
 - When you discover a new issue mid-work, log it:
-  `pnpm dckl correction add <TASK-ID> "<one-line description>"`.
+  `dckl correction add <TASK-ID> "<one-line description>"`.
 - **When the user redirects scope mid-work** (style tweaks, new
   dimensions, added sub-features, "out of scope" that suddenly is
   in), log a correction **before** executing the change — not after,
@@ -187,9 +187,9 @@ when in doubt, ask.
 ### Step 6 — Release
 
 ```bash
-pnpm dckl task release <TASK-ID>        # status unchanged, claim cleared
-pnpm dckl task close   <TASK-ID>        # status=done AND claim cleared
-pnpm dckl task close   <TASK-ID> --force # also with open reminders
+dckl task release <TASK-ID>        # status unchanged, claim cleared
+dckl task close   <TASK-ID>        # status=done AND claim cleared
+dckl task close   <TASK-ID> --force # also with open reminders
 ```
 
 **`release` is not `close`.** Release only clears the claim — status
@@ -200,7 +200,7 @@ user flip status in the UI.
 
 If release or close **fails** (e.g. server crashed mid-session), tell
 the user explicitly: _"Claim could not be released — when the server
-is back, run `pnpm dckl task release <TASK-ID>` manually, otherwise
+is back, run `dckl task release <TASK-ID>` manually, otherwise
 the amber-pulse will stay on."_
 
 Then summarise in chat:
@@ -219,7 +219,7 @@ Then summarise in chat:
 Concrete mistakes the tool has already absorbed the hard way:
 
 - **Heartbeat is automatic.** The PostToolUse hook fires
-  `pnpm dckl heartbeat` on every tool use. Never invoke it manually —
+  `dckl heartbeat` on every tool use. Never invoke it manually —
   doing so just muddies the activity log without changing anything.
 - **`release` ≠ `close`.** Releasing a claim leaves the status as
   `in_progress`. Closing archives the work. Mixing them up leaves
@@ -380,8 +380,8 @@ with done/broken step counts. Bodies are free-form Markdown with a
 Prefer `dckl status` — it already aggregates everything:
 
 ```bash
-pnpm dckl status             # Markdown
-pnpm dckl status --json      # machine-readable
+dckl status             # Markdown
+dckl status --json      # machine-readable
 ```
 
 Output includes: vision + staleness, active sprint, in-flight tasks
@@ -424,12 +424,12 @@ Avoid: `Update auth.ts` (vague), `WIP passkeys` (don't commit WIP),
 
 | Situation | Response |
 |---|---|
-| Server down | `claim`/`release`/`heartbeat`/`check` fail. Tell user: "start `pnpm dckl` in another terminal, then retry". Don't write code without a successful claim. |
+| Server down | `claim`/`release`/`heartbeat`/`check` fail. Tell user: "start `dckl` in another terminal, then retry". Don't write code without a successful claim. |
 | Task-ID padding mismatch | `find .dckl/sprints -type f -name "*<ID>*.md"`. If ambiguous, list candidates. |
 | Multi-session claim race | Two sessions claiming the SAME task = last write wins on `by`. If you see a fresh claim by another agent: release yours, ask user to coordinate. |
 | `context_files` looks incomplete | Ask first. If you must expand, add a correction explaining the reason BEFORE editing. |
 | Body contradicts frontmatter | Trust frontmatter for structured state. Trust body for rationale. Semantic conflict → stop and ask. |
-| No `.dckl/` in the repo | Offer `pnpm dckl init`. If declined, proceed untracked but warn once. |
+| No `.dckl/` in the repo | Offer `dckl init`. If declined, proceed untracked but warn once. |
 | User marks `done` with open criteria | Say so: "N reminders and M tests are still open. Still mark done?" Then respect the call. |
 | Release fails | Tell the user explicitly and give them the exact retry command. Don't silently move on. |
 | Grep patterns with regex metachars | Use `grep -F` for literal file-path matches. |

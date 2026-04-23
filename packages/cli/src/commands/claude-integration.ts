@@ -86,9 +86,13 @@ function installHook(cwd: string): void {
     }
   }
 
+  // Absolute `node <cli.js>` instead of `pnpm dckl …` so the hook works
+  // in any repo — Claude Code spawns hooks in a non-interactive shell
+  // that does not resolve aliases or repo-local pnpm scripts.
+  const cliPath = fileURLToPath(import.meta.url);
   const DCKL_HOOK: HookEntry = {
     type: "command",
-    command: "pnpm dckl heartbeat --silent",
+    command: `node ${shellQuote(cliPath)} heartbeat --silent`,
   };
   const MATCHER = "Write|Edit|Bash|NotebookEdit";
 
@@ -97,8 +101,13 @@ function installHook(cwd: string): void {
 
   const existing = settings.hooks.PostToolUse.find((m) => m.matcher === MATCHER);
   if (existing) {
-    const already = existing.hooks.some((h) => h.command === DCKL_HOOK.command);
-    if (!already) existing.hooks.push(DCKL_HOOK);
+    // Drop any prior dckl heartbeat entry regardless of shape — we
+    // bumped the canonical invocation more than once, and stale
+    // variants would race against the new one.
+    existing.hooks = existing.hooks.filter(
+      (h) => !/(dckl heartbeat|cli\.js heartbeat)/.test(h.command ?? ""),
+    );
+    existing.hooks.push(DCKL_HOOK);
   } else {
     settings.hooks.PostToolUse.push({
       matcher: MATCHER,
@@ -107,5 +116,10 @@ function installHook(cwd: string): void {
   }
 
   writeFileSync(path, `${JSON.stringify(settings, null, 2)}\n`, "utf8");
+}
+
+function shellQuote(p: string): string {
+  if (/^[\w/.@:+-]+$/.test(p)) return p;
+  return `"${p.replace(/"/g, '\\"')}"`;
 }
 

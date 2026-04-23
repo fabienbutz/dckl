@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "pnpm dckl heartbeat --silent"
+            "command": "node /Users/fabienbutz/Documents/GitHub/deckel/packages/cli/dist/cli.js heartbeat --silent"
           }
         ]
       }
