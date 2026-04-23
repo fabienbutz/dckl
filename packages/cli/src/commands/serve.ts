@@ -10,6 +10,7 @@ import { releasePortLock, suggestStartingPort, writePortLock } from "../port-dis
 
 export type ServeOptions = {
   port?: number;
+  noMemory?: boolean;
 };
 
 const DEFAULT_PORT = 4321;
@@ -34,6 +35,7 @@ export async function runServe(options: ServeOptions = {}): Promise<void> {
   const { app, csrfToken } = createApp({
     uiDir: existsSync(uiDir) ? uiDir : undefined,
     deckelRoot: deckelRoot ?? undefined,
+    noMemory: options.noMemory,
   });
 
   const { server, port } = await listenWithRetry(app, startPort, MAX_PORT_ATTEMPTS);
@@ -56,6 +58,9 @@ export async function runServe(options: ServeOptions = {}): Promise<void> {
 
   console.log(`deckel listening on http://localhost:${port}`);
   console.log(`  token: ${csrfToken}`);
+  if (options.noMemory) {
+    console.log("  memory scanner: disabled (--no-memory)");
+  }
 }
 
 function listenWithRetry(

@@ -2,12 +2,21 @@ import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
 import { stdin as input, stdout as output } from "node:process";
 import { createInterface } from "node:readline/promises";
+import {
+  renderStarterSprint,
+  renderStarterTask01,
+  renderStarterTask02,
+  renderStarterTask03,
+} from "../starter-templates.js";
+import { installClaudeIntegration } from "./claude-integration.js";
 
 export type InitOptions = {
   name?: string;
   prefix?: string;
   yes?: boolean;
   cwd?: string;
+  /** Skip the five-minute welcome sprint. Default: include it. */
+  noDemo?: boolean;
 };
 
 const PREFIX_REGEX = /^[A-Z][A-Z0-9]*$/;
@@ -27,8 +36,18 @@ export async function runInit(options: InitOptions = {}): Promise<void> {
   const { name, prefix } = await resolveAnswers(options, defaultName);
 
   scaffold(deckelDir, { name, prefix });
+  if (!options.noDemo) {
+    scaffoldWelcomeSprint(deckelDir, prefix);
+  }
+  installClaudeIntegration(cwd);
 
   console.log(`[deckel init] Scaffolded ${deckelDir}`);
+  console.log("              + CLAUDE.md managed block installed");
+  console.log("              + .claude/skills/deckel/SKILL.md installed");
+  console.log("              + .claude/settings.json heartbeat hook installed");
+  if (!options.noDemo) {
+    console.log("              + welcome sprint (3 teaching tasks) — delete anytime");
+  }
   console.log("              Next: pnpm deckel (or npx @deckel/cli serve)");
 }
 
@@ -86,7 +105,23 @@ function scaffold(deckelDir: string, { name, prefix }: ScaffoldOptions): void {
   writeFileSync(join(deckelDir, "templates", "security-checks.yaml"), DEFAULT_SECURITY_TEMPLATE);
   writeFileSync(join(deckelDir, "templates", "test-categories.yaml"), DEFAULT_TEST_CATEGORIES);
   writeFileSync(join(deckelDir, ".deckelignore"), DEFAULT_IGNORE);
-  writeFileSync(join(deckelDir, ".gitignore"), ".trash/\n.port\n");
+  writeFileSync(join(deckelDir, ".gitignore"), ".trash/\n.port\n.active-task\n");
+}
+
+function scaffoldWelcomeSprint(deckelDir: string, prefix: string): void {
+  const sprintDir = join(deckelDir, "sprints", "sprint-00-welcome");
+  const tasksDir = join(sprintDir, "tasks");
+  mkdirSync(tasksDir, { recursive: true });
+
+  const today = new Date().toISOString().slice(0, 10);
+  const weekLater = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+
+  writeFileSync(join(sprintDir, "index.md"), renderStarterSprint(prefix, today, weekLater));
+  writeFileSync(join(tasksDir, `${prefix}-01.md`), renderStarterTask01(prefix));
+  writeFileSync(join(tasksDir, `${prefix}-02.md`), renderStarterTask02(prefix));
+  writeFileSync(join(tasksDir, `${prefix}-03.md`), renderStarterTask03(prefix));
 }
 
 function renderConfigYaml(name: string, prefix: string, created: string): string {

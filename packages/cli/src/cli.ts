@@ -4,6 +4,19 @@ import { fileURLToPath } from "node:url";
 import { Command } from "commander";
 import { runInit } from "./commands/init.js";
 import { runServe } from "./commands/serve.js";
+import { runDoctor } from "./commands/doctor.js";
+import { runExport } from "./commands/export.js";
+import { runJourneyList, runJourneyNew } from "./commands/journey.js";
+import { runStatus } from "./commands/status.js";
+import { runStop } from "./commands/stop.js";
+import { type VisionInitOptions, runVisionInit } from "./commands/vision.js";
+import {
+  runCheck,
+  runCorrectionAdd,
+  runHeartbeat,
+  runTaskClaim,
+  runTaskRelease,
+} from "./commands/task.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const pkg = JSON.parse(readFileSync(resolve(here, "..", "package.json"), "utf8")) as {
@@ -23,8 +36,23 @@ program
   .option("-p, --port <port>", "Port to listen on (default 4321)", (value) =>
     Number.parseInt(value, 10),
   )
-  .action(async (opts: { port?: number }) => {
-    await runServe({ port: opts.port });
+  .option(
+    "--no-memory",
+    "Disable the Claude Code memory scanner (screenshare/demo-safe)",
+  )
+  .action(async (opts: { port?: number; memory?: boolean }) => {
+    await runServe({ port: opts.port, noMemory: opts.memory === false });
+  });
+
+program
+  .command("stop")
+  .description("Gracefully stop the running Deckel server (reads .deckel/.port)")
+  .option("--force", "Escalate to SIGKILL if SIGTERM does not land within the timeout")
+  .option("--timeout <ms>", "How long to wait for graceful exit (default 2000)", (v) =>
+    Number.parseInt(v, 10),
+  )
+  .action(async (opts: { force?: boolean; timeout?: number }) => {
+    await runStop({ force: opts.force, timeoutMs: opts.timeout });
   });
 
 program
@@ -33,8 +61,117 @@ program
   .option("-n, --name <name>", "Project name (default: current directory name)")
   .option("-p, --prefix <prefix>", "Task-ID prefix (default: TSK)")
   .option("-y, --yes", "Non-interactive — accept all defaults")
-  .action(async (opts: { name?: string; prefix?: string; yes?: boolean }) => {
-    await runInit(opts);
+  .option("--no-demo", "Skip the five-minute welcome sprint (default: include it)")
+  .action(async (opts: { name?: string; prefix?: string; yes?: boolean; demo?: boolean }) => {
+    // commander translates --no-demo to { demo: false }
+    await runInit({ ...opts, noDemo: opts.demo === false });
+  });
+
+const taskCmd = program
+  .command("task")
+  .description("Task operations (claim / release — used by AI agents and CLI tooling)");
+
+taskCmd
+  .command("claim <id>")
+  .description("Mark a task as actively worked on (writes .deckel/.active-task)")
+  .option("--by <agent>", "Agent name (default: claude-code)")
+  .action(async (id: string, opts: { by?: string }) => {
+    await runTaskClaim(id, opts);
+  });
+
+taskCmd
+  .command("release <id>")
+  .description("Release an active task claim")
+  .action(async (id: string) => {
+    await runTaskRelease(id);
+  });
+
+program
+  .command("heartbeat")
+  .description("Emit a heartbeat for the currently active task (silent by default)")
+  .option("--silent", "Suppress all output even on error")
+  .action(async (opts: { silent?: boolean }) => {
+    await runHeartbeat(opts);
+  });
+
+program
+  .command("check <task-id> <check-id>")
+  .description("Toggle a reminder or test check on a task (finds it by ID)")
+  .action(async (taskId: string, checkId: string) => {
+    await runCheck(taskId, checkId);
+  });
+
+const correctionCmd = program
+  .command("correction")
+  .description("Correction operations (notes surfaced during implementation)");
+
+correctionCmd
+  .command("add <task-id> <text>")
+  .description("Append a correction (a new issue discovered while working)")
+  .action(async (taskId: string, text: string) => {
+    await runCorrectionAdd(taskId, text);
+  });
+
+program
+  .command("status")
+  .description("Print a project status report (vision, active sprint, gaps, recent commits)")
+  .option("--git-days <n>", "How many days of git history to include (default 14)", (v) =>
+    Number.parseInt(v, 10),
+  )
+  .option("--json", "Output JSON instead of Markdown")
+  .action(async (opts: { gitDays?: number; json?: boolean }) => {
+    await runStatus(opts);
+  });
+
+program
+  .command("export <task-id>")
+  .description("Print a structured Claude prompt with all context for a task")
+  .action(async (taskId: string) => {
+    await runExport(taskId);
+  });
+
+program
+  .command("doctor")
+  .description("Audit .deckel/ and Claude integration for consistency issues")
+  .option("--json", "Output JSON instead of Markdown")
+  .action(async (opts: { json?: boolean }) => {
+    const { code } = await runDoctor(opts);
+    process.exit(code);
+  });
+
+const journeyCmd = program
+  .command("journey")
+  .description("Journey operations (ordered route flows that cross sprints)");
+
+journeyCmd
+  .command("new <slug>")
+  .description("Scaffold a new journey at .deckel/journeys/<slug>.md")
+  .option("-n, --name <name>", "Human-readable name (default: derived from the slug)")
+  .option("-d, --description <text>", "One-line description")
+  .action(async (slug: string, opts: { name?: string; description?: string }) => {
+    await runJourneyNew(slug, opts);
+  });
+
+journeyCmd
+  .command("list")
+  .description("List journeys with their done/broken step counts")
+  .action(async () => {
+    await runJourneyList();
+  });
+
+const visionCmd = program.command("vision").description("Project vision operations");
+
+visionCmd
+  .command("init")
+  .description("Scaffold .deckel/VISION.md (the project's north-star anchor)")
+  .option("-n, --north-star <text>", "North star — one sentence, the eventual state")
+  .option("-a, --audience <text>", "Who this is for, specifically")
+  .option("-g, --non-goals <csv>", "Things we deliberately don't do (comma-separated)")
+  .option("-p, --phase <slug>", "Current phase (e.g. 'mvp', 'hardening')")
+  .option("-y, --yes", "Non-interactive — requires --north-star")
+  .option("--force", "Overwrite an existing VISION.md")
+  .action(async (opts: VisionInitOptions) => {
+    await runVisionInit(opts);
   });
 
 program.parseAsync(process.argv).catch((err: unknown) => {
