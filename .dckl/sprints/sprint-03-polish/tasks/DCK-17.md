@@ -39,15 +39,15 @@ corrections:
     text: >-
       Drawer-Architektur: 420px Flex-Panel → 780px Overlay (absolute right-0,
       z-20), damit SprintBoard dahinter die volle Breite behält.
-    open: true
+    open: false
     target_sprint: null
   - id: c2
     text: >-
       Globale MD_COMPONENTS-Typografie angehoben (p 14→15px, line-height
       22→26px, h2→18px, pre 13→14px) — User wollte größere Font + mehr
       Zeilenhöhe. Betrifft auch MarkdownReader, bewusst konsistent.
-    open: true
-    target_sprint: null
+    open: false
+    target_sprint: sprint-04-future
   - id: c3
     text: >-
       Inline-Code-Styling nach 3 User-Iterationen: text-text-secondary,
@@ -87,7 +87,7 @@ pre_flight:
     Schema prüfen (`packages/server/src/schema.ts` oder äquivalent): Ist `body:
     string` auf `Task` bereits verfügbar, oder muss das Interface erweitert
     werden?
-updated: '2026-04-23T14:09:25.424Z'
+updated: '2026-04-23T14:36:33.810Z'
 ---
 
 ## Worum es geht

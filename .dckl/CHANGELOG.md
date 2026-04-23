@@ -2,6 +2,22 @@
 
 ## 2026-04-23
 
+- **16:36** · `DCK-13` · status `in_progress` → `done`
+
+- **16:36** · `DCK-13` · reminder `input-validation` → checked
+
+- **16:36** · `DCK-13` · test `status-visible` → checked
+
+- **16:36** · `DCK-13` · test `target-sprint` → checked
+
+- **16:36** · `DCK-13` · test `unknown-cid-errors` → checked
+
+- **16:36** · `DCK-13` · test `marks-resolved` → checked
+
+- **16:36** · `DCK-17` · correction `c2` resolved
+
+- **16:36** · `DCK-17` · correction `c1` resolved
+
 - **16:35** · `DCK-12` · test `rejects-open-reminders` → checked
 
 - **16:35** · `DCK-12` · test `idempotent` → checked

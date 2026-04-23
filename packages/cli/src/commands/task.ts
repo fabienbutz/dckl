@@ -372,6 +372,77 @@ export async function runCorrectionAdd(taskId: string, text: string): Promise<vo
   console.log(`[dckl] ${taskId} correction \`${nextId}\`: ${trimmed}`);
 }
 
+// ─── dckl correction resolve <task-id> <cid> [--target-sprint <slug>] ────
+
+export async function runCorrectionResolve(
+  taskId: string,
+  cid: string,
+  opts: { targetSprint?: string } = {},
+): Promise<void> {
+  const dcklRoot = requiredcklRoot();
+  const sprintId = findSprintForTask(dcklRoot, taskId);
+  if (!sprintId) {
+    console.error(`[dckl] task ${taskId} not found in any sprint`);
+    process.exitCode = 1;
+    return;
+  }
+
+  const got = await apiGet<TaskShape>(
+    dcklRoot,
+    `/api/sprints/${sprintId}/tasks/${taskId}`,
+  );
+  if (!got.ok || !got.data || !got.etag) {
+    if (isServerDown(got)) {
+      reportServerDown(`pnpm dckl correction resolve ${taskId} ${cid}`);
+    } else {
+      console.error(`[dckl] failed to read ${taskId}: ${got.status} ${got.error}`);
+    }
+    process.exitCode = 1;
+    return;
+  }
+
+  const corrections = got.data.meta.corrections;
+  const target = corrections.find((c) => c.id === cid);
+  if (!target) {
+    const available = corrections.map((c) => `  ${c.id}${c.open ? "" : " (resolved)"} — ${c.text}`);
+    console.error(`[dckl] no correction "${cid}" on ${taskId}.`);
+    if (available.length > 0) {
+      console.error("[dckl] available:");
+      console.error(available.join("\n"));
+    }
+    process.exitCode = 1;
+    return;
+  }
+
+  const nextCorrections = corrections.map((c) =>
+    c.id === cid
+      ? {
+          ...c,
+          open: false,
+          target_sprint: opts.targetSprint ?? c.target_sprint ?? null,
+        }
+      : c,
+  );
+
+  const res = await apiPatch(
+    dcklRoot,
+    `/api/sprints/${sprintId}/tasks/${taskId}`,
+    { corrections: nextCorrections },
+    got.etag,
+  );
+  if (!res.ok) {
+    if (isServerDown(res)) {
+      reportServerDown(`pnpm dckl correction resolve ${taskId} ${cid}`);
+    } else {
+      console.error(`[dckl] resolve failed: ${res.status} ${res.error}`);
+    }
+    process.exitCode = 1;
+    return;
+  }
+  const forwarded = opts.targetSprint ? ` → ${opts.targetSprint}` : "";
+  console.log(`[dckl] ${taskId} correction \`${cid}\`: resolved${forwarded}`);
+}
+
 function nextCorrectionId(existing: Array<{ id: string }>): string {
   let max = 0;
   for (const c of existing) {

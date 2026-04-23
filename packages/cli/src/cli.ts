@@ -13,6 +13,7 @@ import { type VisionInitOptions, runVisionInit } from "./commands/vision.js";
 import {
   runCheck,
   runCorrectionAdd,
+  runCorrectionResolve,
   runHeartbeat,
   runTaskClaim,
   runTaskClose,
@@ -119,6 +120,14 @@ correctionCmd
   .description("Append a correction (a new issue discovered while working)")
   .action(async (taskId: string, text: string) => {
     await runCorrectionAdd(taskId, text);
+  });
+
+correctionCmd
+  .command("resolve <task-id> <cid>")
+  .description("Mark a correction as resolved (sets open: false)")
+  .option("--target-sprint <slug>", "Forward the correction to a future sprint")
+  .action(async (taskId: string, cid: string, opts: { targetSprint?: string }) => {
+    await runCorrectionResolve(taskId, cid, opts);
   });
 
 program

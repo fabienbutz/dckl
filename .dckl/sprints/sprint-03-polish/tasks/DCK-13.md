@@ -2,33 +2,35 @@
 schema: 1
 id: DCK-13
 sprint_id: sprint-03-polish
-title: dckl correction resolve <id> <cid> — close corrections
+title: Correction als erledigt markieren (`dckl correction resolve`)
 type: feature
-status: todo
+status: done
 security_checks:
   - id: input-validation
-    checked: false
+    checked: true
 test_criteria:
   - id: marks-resolved
     label: >-
-      `dckl correction resolve DCK-06 c1` sets `open: false` on that
-      correction, updates `updated:`, and preserves all other fields
-    checked: false
+      `dckl correction resolve DCK-06 c1` setzt `open: false` auf die
+      Correction, aktualisiert `updated:` und lässt alle anderen Felder
+      unverändert.
+    checked: true
   - id: unknown-cid-errors
     label: >-
-      Unknown correction id exits non-zero with a clear message, no file
-      mutation
-    checked: false
+      Unbekannte Correction-ID führt zu Exit ≠ 0 mit klarer Fehlermeldung —
+      keine File-Mutation.
+    checked: true
   - id: target-sprint
     label: >-
-      Supports `--target-sprint <id>` to move the correction forward to a
-      future sprint (sets `target_sprint:` and `open: false`)
-    checked: false
+      `--target-sprint <id>` setzt zusätzlich `target_sprint:` auf den neuen
+      Sprint — die Correction ist im Quell-Task geschlossen, aber
+      weitergereicht.
+    checked: true
   - id: status-visible
     label: >-
-      `dckl status` counts only `open: true` corrections — resolved ones
-      are hidden from the "Gap" section
-    checked: false
+      `dckl status` zählt nur `open: true` Corrections — resolved sind aus der
+      "Gap"-Sektion ausgeblendet.
+    checked: true
 corrections: []
 context_files:
   - packages/cli/src/commands/correction.ts
@@ -37,42 +39,50 @@ context_files:
 depends_on: []
 pre_flight:
   - >-
-    End of Sprint-02 left 15 open corrections; most are either already
-    handled or non-goal — they need an explicit close path, not silent rot.
+    End of Sprint-02 left 15 open corrections; most are either already handled
+    or non-goal — they need an explicit close path, not silent rot.
   - >-
-    `correction add` writes via the API's task PATCH. Mirror that pathway
-    for `resolve` so ETag guards still apply.
+    `correction add` writes via the API's task PATCH. Mirror that pathway for
+    `resolve` so ETag guards still apply.
+updated: '2026-04-23T14:36:45.652Z'
 ---
 
-## DCK-13: `dckl correction resolve <id> <cid>`
+## Worum es geht
 
-Corrections are the breadcrumbs agents leave during implementation —
-"scope expanded", "context_files missed X". They accumulate. Sprint-02
-ended with 15 open corrections, most actually resolved, but there is
-no way to mark them so. `dckl status` keeps flagging them forever.
+Ein CLI-Befehl, der eine einzelne Correction auf einer Task als
+erledigt markiert — das Gegenstück zu `correction add`. Setzt
+`open: false` auf der bezeichneten Correction, aktualisiert `updated:`
+und bewahrt alle anderen Felder.
 
-### Why
+Optional: `--target-sprint <id>` reicht die Correction an einen
+späteren Sprint weiter. Die Correction bleibt im Quell-Task
+geschlossen, trägt aber den Ziel-Sprint in `target_sprint:`.
 
-- `correction add` exists but has no inverse.
-- Manual YAML edit is error-prone (indentation, wrong key).
-- Future sprints can't inherit corrections cleanly without a
-  `--target-sprint` handoff.
+## Warum jetzt
 
-### Semantics
+Corrections sind die Brotkrumen, die Agents während der Implementation
+hinterlassen ("Scope expanded", "context_files missed X"). Sie sammeln
+sich an. Sprint-02 endete mit 15 offenen Corrections — fast alle
+tatsächlich erledigt, aber ohne Schließpfad. Manuelle YAML-Edits sind
+fehleranfällig (Einrückung, falscher Key). `dckl status` zeigt offene
+Corrections endlos an, solange es keinen sauberen `resolve`-Weg gibt.
+
+## Woran man merkt, dass es fertig ist
+
+Siehe Test-Kriterien in der Frontmatter.
+
+## CLI-Signatur
 
 ```
 dckl correction resolve DCK-06 c1
-dckl correction resolve DCK-06 c3 --target-sprint sprint-03-polish
-dckl correction list DCK-06              # stretch: show open corrections
+dckl correction resolve DCK-06 c3 --target-sprint sprint-04-foo
 ```
 
-- `resolve` sets `open: false` and bumps `updated:`.
-- `--target-sprint` additionally sets `target_sprint:` — the
-  correction is still closed on the source task, but forwarded.
-- Unknown task or correction id → exit 1 with a clear message.
+## Out of scope
 
-### Out of scope
-
-- `correction edit` (change text after adding).
-- Cross-task correction rollup view in the UI.
-- Auto-resolve when a linked file is committed.
+- `correction edit` — Text einer bestehenden Correction nachträglich
+  ändern. Eigenes Kommando, niedrige Priorität.
+- Cross-Task-Rollup in der UI. Eigener Task, erst wenn der Use-Case
+  validiert ist.
+- Auto-Resolve bei Commit auf eine in der Correction genannte Datei.
+  Zu fehleranfällig — menschlicher Call bleibt Pflicht.
