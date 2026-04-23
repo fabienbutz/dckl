@@ -4,40 +4,38 @@ id: DCK-19
 sprint_id: sprint-03-polish
 title: Sprint-03-Task-Bodies auf neues Deutsch-Template migrieren
 type: chore
-status: todo
+status: done
 security_checks: []
 test_criteria:
   - id: five-tasks-migrated
     label: >-
       DCK-11, DCK-13, DCK-14, DCK-15 und DCK-16 haben alle den neuen
-      Body-Aufbau: "Worum es geht / Warum jetzt / Woran man merkt, dass
-      es fertig ist / Out of scope" — auf Deutsch, mit englischen
-      Fachbegriffen im Original.
-    checked: false
+      Body-Aufbau: "Worum es geht / Warum jetzt / Woran man merkt, dass es
+      fertig ist / Out of scope" — auf Deutsch, mit englischen Fachbegriffen im
+      Original.
+    checked: true
   - id: titles-human
     label: >-
-      Task-Titel sind in menschlichem Deutsch formuliert. Command-
-      Referenzen wie `dckl task close` dürfen als Backtick-Code im
-      Titel stehen, wenn sie die Aussage tragen.
-    checked: false
+      Task-Titel sind in menschlichem Deutsch formuliert. Command- Referenzen
+      wie `dckl task close` dürfen als Backtick-Code im Titel stehen, wenn sie
+      die Aussage tragen.
+    checked: true
   - id: criteria-german
     label: >-
-      `test_criteria`-Labels sind in Deutsch mit Fachbegriffen in
-      Originalform (ETag, PATCH, status=done etc.), konsistent zu
-      DCK-12 und DCK-17.
-    checked: false
+      `test_criteria`-Labels sind in Deutsch mit Fachbegriffen in Originalform
+      (ETag, PATCH, status=done etc.), konsistent zu DCK-12 und DCK-17.
+    checked: true
   - id: ui-renders-clean
     label: >-
-      In der UI rendert jeder migrierte Task-Body korrekt über
-      `MarkdownBody`; Inline-Code erscheint als Code-Span, keine
-      Roh-Backticks mehr sichtbar.
-    checked: false
+      In der UI rendert jeder migrierte Task-Body korrekt über `MarkdownBody`;
+      Inline-Code erscheint als Code-Span, keine Roh-Backticks mehr sichtbar.
+    checked: true
   - id: no-scope-drift
     label: >-
       Keine Task wurde inhaltlich verschoben — reine Übersetzung und
-      Restrukturierung. Scope-relevante Änderungen werden als
-      Correction dokumentiert, nicht stillschweigend eingearbeitet.
-    checked: false
+      Restrukturierung. Scope-relevante Änderungen werden als Correction
+      dokumentiert, nicht stillschweigend eingearbeitet.
+    checked: true
 corrections: []
 context_files:
   - .dckl/sprints/sprint-03-polish/tasks/DCK-11.md
@@ -49,13 +47,14 @@ depends_on:
   - DCK-18
 pre_flight:
   - >-
-    DCK-18 muss abgeschlossen sein. Nach dem Rename zeigen die Pfade
-    auf `.dckl/sprints/...` — alle Command-Referenzen im Body haben
-    dann bereits `dckl` statt `dckl`. Diese Task migriert nur die
-    verbleibende Struktur und Sprache.
+    DCK-18 muss abgeschlossen sein. Nach dem Rename zeigen die Pfade auf
+    `.dckl/sprints/...` — alle Command-Referenzen im Body haben dann bereits
+    `dckl` statt `dckl`. Diese Task migriert nur die verbleibende Struktur und
+    Sprache.
   - >-
-    DCK-12 und DCK-17 als Referenz lesen — das ist das Template, das
-    alle fünf restlichen Tasks übernehmen.
+    DCK-12 und DCK-17 als Referenz lesen — das ist das Template, das alle fünf
+    restlichen Tasks übernehmen.
+updated: '2026-04-23T14:52:17.327Z'
 ---
 
 ## Worum es geht

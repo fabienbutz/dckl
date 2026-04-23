@@ -2,6 +2,18 @@
 
 ## 2026-04-23
 
+- **16:52** · `DCK-19` · status `in_progress` → `done`
+
+- **16:52** · `DCK-19` · test `no-scope-drift` → checked
+
+- **16:52** · `DCK-19` · test `ui-renders-clean` → checked
+
+- **16:52** · `DCK-19` · test `criteria-german` → checked
+
+- **16:52** · `DCK-19` · test `titles-human` → checked
+
+- **16:52** · `DCK-19` · test `five-tasks-migrated` → checked
+
 - **16:51** · `DCK-16` · status `in_progress` → `done`
 
 - **16:51** · `DCK-16` · test `no-planned-markers` → checked

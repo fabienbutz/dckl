@@ -45,34 +45,37 @@ pre_flight:
 updated: '2026-04-23T14:51:24.161Z'
 ---
 
-## DCK-16: SKILL.md + CLAUDE.md reality refresh
+## Worum es geht
 
-After Sprint-03 adds three new CLI commands (`task close`, `correction
-resolve`, `sprint close`), the agent-facing docs must reflect them.
-Otherwise the next agent that touches dckl rediscovers the manual
-PATCH workflow and the cycle repeats.
+Nach Sprint-03 gibt es drei neue CLI-Befehle (`task close`,
+`correction resolve`, `sprint close`) plus `doctor --fix`. Die
+Agent-facing Docs (`SKILL.md`, `CLAUDE.md`) müssen das sauber
+widerspiegeln — sonst entdeckt der nächste Agent den manuellen
+PATCH-Workaround von Sprint-02 neu, und der Zyklus startet wieder.
 
-### Why
+## Warum jetzt
 
-- Sprint-02 already required one reality-pass (S2.8-7) because the
-  docs drifted during a single sprint. Every sprint that adds CLI
-  surface needs this.
-- SKILL.md is authoritative when it disagrees with CLAUDE.md — so it
-  has to actually be right.
+Sprint-02 benötigte bereits einen Reality-Pass (S2.8-7), weil die
+Docs während einer einzigen Sprint-Runde drifteten. Jeder Sprint,
+der CLI-Oberfläche hinzufügt, braucht dieselbe Disziplin —
+ansonsten wächst die Diskrepanz zwischen Tool und Doku bei jeder
+Iteration.
 
-### Approach
+## Ansatz
 
-1. Diff `dckl --help` output against the command tables in
-   SKILL.md and CLAUDE.md; update both.
-2. Remove any mention of manual API PATCH, direct file edits, or
-   `pkill` workarounds — Sprint-03 closes those paths.
-3. Add a short "anti-patterns from Sprint-02" section listing:
-   - Heartbeat is automatic — do not invoke manually.
+1. `dckl --help` gegen die Command-Tabellen in `SKILL.md` und
+   `CLAUDE.md` diffen; beide aktualisieren.
+2. Alle Referenzen auf manuelle API-PATCHes, direkte File-Edits oder
+   `pkill`-Workarounds entfernen — Sprint-03 schließt diese Pfade.
+3. Neue Sektion "Learned anti-patterns (Sprint-02 & Sprint-03)" in
+   `SKILL.md`:
+   - Heartbeat ist automatisch — nie manuell aufrufen.
    - `task release` ≠ `task close`.
-   - Corrections need explicit resolution, not silent drop.
-   - Stale-Edit state: always re-Read before Edit on files touched
-     earlier in the session.
-4. Remove any `[planned]` or "coming soon" markers.
+   - Corrections brauchen explizites `resolve`, kein silent drop.
+   - `sprint close` schreibt SUMMARY und bewegt den Ordner.
+   - Stale-Edit: nach CLI-Call immer re-Read vor dem nächsten Edit.
+4. Alle `[planned]` / "coming soon" Marker weg — Docs beschreiben
+   Realität, nicht Intent.
 
 ### Out of scope
 
