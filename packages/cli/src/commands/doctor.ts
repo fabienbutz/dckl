@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync, unlinkSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
 import { Store, isClaimFresh } from "@dckl/server";
 import { findDcklRoot } from "@dckl/server/storage";
@@ -16,6 +16,8 @@ export type DoctorOptions = {
   cwd?: string;
   /** If true, the caller handles exiting; runDoctor only returns the code. */
   silent?: boolean;
+  /** Clear safely-fixable issues (today: orphan/malformed `.active-task`). */
+  fix?: boolean;
 };
 
 const STALE_CLAIM_MS = 24 * 60 * 60 * 1000;
@@ -54,7 +56,7 @@ export async function runDoctor(opts: DoctorOptions = {}): Promise<{
   await checkConfig(store, findings);
   await checkVision(store, findings);
   await checkSprintsAndTasks(dcklRoot, store, findings);
-  checkActiveTaskPointer(dcklRoot, findings);
+  checkActiveTaskPointer(dcklRoot, findings, { fix: opts.fix ?? false });
   checkClaudeIntegration(dcklRoot, findings);
 
   if (!opts.silent) emit(findings, opts);
@@ -100,10 +102,17 @@ async function checkVision(store: Store, findings: Finding[]): Promise<void> {
       code: "vision",
       message: `VISION.md valid — north star: "${vision.meta.north_star.slice(0, 80)}…"`,
     });
-    if (vision.meta.updated) {
+    if (!vision.meta.updated) {
+      findings.push({
+        severity: "warn",
+        code: "vision-updated-missing",
+        message:
+          "VISION.md has no `updated:` field in its frontmatter — the staleness heuristic silently fails without it. Add `updated: YYYY-MM-DD`.",
+      });
+    } else {
       const age = Date.now() - Date.parse(vision.meta.updated);
       const ageDays = Math.floor(age / (1000 * 60 * 60 * 24));
-      if (ageDays > 60) {
+      if (ageDays > 90) {
         findings.push({
           severity: "warn",
           code: "vision-stale",
@@ -239,7 +248,11 @@ async function checkSprintsAndTasks(
   }
 }
 
-function checkActiveTaskPointer(dcklRoot: string, findings: Finding[]): void {
+function checkActiveTaskPointer(
+  dcklRoot: string,
+  findings: Finding[],
+  opts: { fix: boolean },
+): void {
   const activePath = join(dcklRoot, ".active-task");
   if (!existsSync(activePath)) {
     findings.push({
@@ -250,6 +263,28 @@ function checkActiveTaskPointer(dcklRoot: string, findings: Finding[]): void {
     return;
   }
 
+  const fixHint = opts.fix
+    ? " Auto-fixing now."
+    : " Run `dckl doctor --fix` to clear the pointer.";
+
+  const applyFix = (code: string, reason: string): void => {
+    if (!opts.fix) return;
+    try {
+      unlinkSync(activePath);
+      findings.push({
+        severity: "ok",
+        code: `${code}-fixed`,
+        message: `Cleared stale \`.active-task\` (${reason}).`,
+      });
+    } catch (err) {
+      findings.push({
+        severity: "error",
+        code: `${code}-fix-failed`,
+        message: `Could not delete \`.active-task\`: ${(err as Error).message}`,
+      });
+    }
+  };
+
   let parsed: { sprint_id?: unknown; task_id?: unknown };
   try {
     parsed = JSON.parse(readFileSync(activePath, "utf8")) as typeof parsed;
@@ -257,8 +292,9 @@ function checkActiveTaskPointer(dcklRoot: string, findings: Finding[]): void {
     findings.push({
       severity: "warn",
       code: "active-task-malformed",
-      message: `\`.active-task\` exists but is not valid JSON: ${(err as Error).message}. Remove it.`,
+      message: `\`.active-task\` exists but is not valid JSON: ${(err as Error).message}.${fixHint}`,
     });
+    applyFix("active-task-malformed", "unparseable JSON");
     return;
   }
 
@@ -268,8 +304,9 @@ function checkActiveTaskPointer(dcklRoot: string, findings: Finding[]): void {
     findings.push({
       severity: "warn",
       code: "active-task-malformed",
-      message: "`.active-task` is missing `sprint_id` or `task_id`. Remove it.",
+      message: `\`.active-task\` is missing \`sprint_id\` or \`task_id\`.${fixHint}`,
     });
+    applyFix("active-task-malformed", "missing fields");
     return;
   }
 
@@ -281,8 +318,9 @@ function checkActiveTaskPointer(dcklRoot: string, findings: Finding[]): void {
     findings.push({
       severity: "warn",
       code: "active-task-malformed",
-      message: `.active-task has unsafe values (\`sprint_id=${sid}\`, \`task_id=${tid}\`). Remove it: \`rm ${activePath}\``,
+      message: `\`.active-task\` has unsafe values (\`sprint_id=${sid}\`, \`task_id=${tid}\`).${fixHint}`,
     });
+    applyFix("active-task-malformed", "unsafe values");
     return;
   }
 
@@ -291,8 +329,9 @@ function checkActiveTaskPointer(dcklRoot: string, findings: Finding[]): void {
     findings.push({
       severity: "warn",
       code: "active-task-orphan",
-      message: `\`.active-task\` points at \`${sid}/${tid}\` but no such task file exists. Remove the pointer: \`rm ${activePath}\``,
+      message: `\`.active-task\` points at \`${sid}/${tid}\` but no such task file exists.${fixHint}`,
     });
+    applyFix("active-task-orphan", `task ${tid} not found in ${sid}`);
     return;
   }
 

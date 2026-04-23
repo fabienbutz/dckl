@@ -2,6 +2,18 @@
 
 ## 2026-04-23
 
+- **16:39** · `DCK-14` · status `in_progress` → `done`
+
+- **16:39** · `DCK-14` · reminder `input-validation` → checked
+
+- **16:39** · `DCK-14` · test `exit-code` → checked
+
+- **16:39** · `DCK-14` · test `vision-stale-warning` → checked
+
+- **16:39** · `DCK-14` · test `vision-updated-missing` → checked
+
+- **16:39** · `DCK-14` · test `stale-active-task` → checked
+
 - **16:36** · `DCK-13` · status `in_progress` → `done`
 
 - **16:36** · `DCK-13` · reminder `input-validation` → checked

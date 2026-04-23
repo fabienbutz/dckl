@@ -4,30 +4,29 @@ id: DCK-14
 sprint_id: sprint-03-polish
 title: Doctor — detect stale .active-task and missing VISION.md updated field
 type: feature
-status: todo
+status: done
 security_checks:
   - id: input-validation
-    checked: false
+    checked: true
 test_criteria:
   - id: stale-active-task
     label: >-
-      Doctor flags `.active-task` pointing to a non-existent or archived
-      task (e.g. archived sprint) and offers `--fix` to clear the pointer
-    checked: false
+      Doctor flags `.active-task` pointing to a non-existent or archived task
+      (e.g. archived sprint) and offers `--fix` to clear the pointer
+    checked: true
   - id: vision-updated-missing
     label: >-
-      Doctor flags `.dckl/VISION.md` if the YAML frontmatter has no
-      `updated:` field (staleness heuristic silently fails otherwise)
-    checked: false
+      Doctor flags `.dckl/VISION.md` if the YAML frontmatter has no `updated:`
+      field (staleness heuristic silently fails otherwise)
+    checked: true
   - id: vision-stale-warning
-    label: >-
-      Doctor warns when VISION.md `updated:` is older than 90 days
-    checked: false
+    label: 'Doctor warns when VISION.md `updated:` is older than 90 days'
+    checked: true
   - id: exit-code
     label: >-
       Exit code 0 when all checks pass, 1 when any warning fires. Keeps CI
       hookability even though CI is a non-goal for now.
-    checked: false
+    checked: true
 corrections: []
 context_files:
   - packages/cli/src/commands/doctor.ts
@@ -38,8 +37,9 @@ pre_flight:
     Existing doctor already validates basic scaffolding. Add two new checks
     without breaking the existing output format — maintainer greps it.
   - >-
-    Direct Sprint-02 corrections: DCK-06 c1 (stale .active-task from
-    archived sprint-01) and DCK-06 c3 (missing updated: field).
+    Direct Sprint-02 corrections: DCK-06 c1 (stale .active-task from archived
+    sprint-01) and DCK-06 c3 (missing updated: field).
+updated: '2026-04-23T14:39:55.188Z'
 ---
 
 ## DCK-14: Doctor — stale pointers + VISION staleness

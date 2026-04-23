@@ -152,7 +152,8 @@ program
   .command("doctor")
   .description("Audit .dckl/ and Claude integration for consistency issues")
   .option("--json", "Output JSON instead of Markdown")
-  .action(async (opts: { json?: boolean }) => {
+  .option("--fix", "Auto-clear safely-fixable issues (e.g. orphan `.active-task`)")
+  .action(async (opts: { json?: boolean; fix?: boolean }) => {
     const { code } = await runDoctor(opts);
     process.exit(code);
   });
