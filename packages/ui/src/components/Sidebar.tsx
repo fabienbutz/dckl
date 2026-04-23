@@ -51,7 +51,10 @@ export function Sidebar({
   const sorted = [...sprints].sort((a, b) => {
     const diff = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
     if (diff !== 0) return diff;
-    return b.id.localeCompare(a.id);
+    // Ascending within status so `sprint-00 → 01 → 02` reads in the
+    // order the user wrote them. Descending was counter-intuitive the
+    // first time more than one sprint existed.
+    return a.id.localeCompare(b.id);
   });
 
   const projectName = config?.project.name ?? "dckl";
