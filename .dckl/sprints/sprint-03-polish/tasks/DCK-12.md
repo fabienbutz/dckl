@@ -4,32 +4,32 @@ id: DCK-12
 sprint_id: sprint-03-polish
 title: Task per CLI-Befehl abschließen (`dckl task close`)
 type: feature
-status: todo
+status: done
 security_checks:
   - id: input-validation
-    checked: false
+    checked: true
 test_criteria:
   - id: status-done
     label: >-
       `dckl task close <id>` setzt `status=done` atomar (ETag-geschützt,
       gleicher Schreib-Pfad wie `PATCH /api/sprints/.../tasks/:id`)
-    checked: false
+    checked: true
   - id: release-claim
     label: >-
-      Schließen gibt den aktiven Claim frei (`.active-task` wird geleert,
-      wenn die Task dort referenziert war) — keine Zombie-Pointer
-    checked: false
+      Schließen gibt den aktiven Claim frei (`.active-task` wird geleert, wenn
+      die Task dort referenziert war) — keine Zombie-Pointer
+    checked: true
   - id: idempotent
     label: >-
-      Schließen einer bereits geschlossenen Task ist ein No-op (Hinweis,
-      Exit 0) — kein `updated:`-Bump, kein CHANGELOG-Eintrag
-    checked: false
+      Schließen einer bereits geschlossenen Task ist ein No-op (Hinweis, Exit 0)
+      — kein `updated:`-Bump, kein CHANGELOG-Eintrag
+    checked: true
   - id: rejects-open-reminders
     label: >-
-      Verweigert das Schließen, solange `security_checks` offene Einträge
-      haben — außer mit `--force`. Entspricht der SKILL-Regel "don't close
-      with open reminders"
-    checked: false
+      Verweigert das Schließen, solange `security_checks` offene Einträge haben
+      — außer mit `--force`. Entspricht der SKILL-Regel "don't close with open
+      reminders"
+    checked: true
 corrections: []
 context_files:
   - packages/cli/src/commands/task.ts
@@ -38,12 +38,12 @@ context_files:
 depends_on: []
 pre_flight:
   - >-
-    SKILL.md-Abschnitt "Finishing a task" lesen — die close-Semantik muss
-    zu dem passen, was die Skill bereits an Agents kommuniziert.
+    SKILL.md-Abschnitt "Finishing a task" lesen — die close-Semantik muss zu dem
+    passen, was die Skill bereits an Agents kommuniziert.
   - >-
-    Entscheiden, ob `close` zusätzlich in `CHANGELOG.md` schreibt —
-    Sprint-02 appendet bereits bei Status-Wechseln, Doppel-Einträge
-    verifizieren.
+    Entscheiden, ob `close` zusätzlich in `CHANGELOG.md` schreibt — Sprint-02
+    appendet bereits bei Status-Wechseln, Doppel-Einträge verifizieren.
+updated: '2026-04-23T14:35:03.070Z'
 ---
 
 ## Worum es geht

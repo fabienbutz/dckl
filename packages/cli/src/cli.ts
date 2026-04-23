@@ -15,6 +15,7 @@ import {
   runCorrectionAdd,
   runHeartbeat,
   runTaskClaim,
+  runTaskClose,
   runTaskRelease,
 } from "./commands/task.js";
 
@@ -84,6 +85,14 @@ taskCmd
   .description("Release an active task claim")
   .action(async (id: string) => {
     await runTaskRelease(id);
+  });
+
+taskCmd
+  .command("close <id>")
+  .description("Mark a task as done (atomic PATCH + claim release)")
+  .option("--force", "Close even if reminders (security_checks) are still open")
+  .action(async (id: string, opts: { force?: boolean }) => {
+    await runTaskClose(id, opts);
   });
 
 program

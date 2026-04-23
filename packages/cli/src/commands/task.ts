@@ -380,3 +380,91 @@ function nextCorrectionId(existing: Array<{ id: string }>): string {
   }
   return `c${max + 1}`;
 }
+
+// ─── dckl task close <task-id> ────────────────────────────────────────────
+
+type TaskShapeWithStatus = TaskShape & { meta: { status: string } };
+
+export async function runTaskClose(
+  taskId: string,
+  opts: { force?: boolean } = {},
+): Promise<void> {
+  const dcklRoot = requiredcklRoot();
+  const sprintId = findSprintForTask(dcklRoot, taskId);
+  if (!sprintId) {
+    console.error(`[dckl] task ${taskId} not found in any sprint`);
+    process.exitCode = 1;
+    return;
+  }
+
+  const got = await apiGet<TaskShapeWithStatus>(
+    dcklRoot,
+    `/api/sprints/${sprintId}/tasks/${taskId}`,
+  );
+  if (!got.ok || !got.data || !got.etag) {
+    if (isServerDown(got)) {
+      reportServerDown(`pnpm dckl task close ${taskId}`);
+    } else {
+      console.error(`[dckl] failed to read ${taskId}: ${got.status} ${got.error}`);
+    }
+    process.exitCode = 1;
+    return;
+  }
+
+  const meta = got.data.meta;
+
+  // Idempotency: already done → no-op (no updated:-bump, no CHANGELOG entry).
+  if (meta.status === "done") {
+    console.log(`[dckl] ${taskId} is already done — no-op`);
+    return;
+  }
+
+  // Refuse with open reminders unless --force.
+  const openReminders = meta.security_checks.filter((r) => !r.checked);
+  if (openReminders.length > 0 && !opts.force) {
+    console.error(
+      `[dckl] ${taskId} has ${openReminders.length} open reminder${
+        openReminders.length === 1 ? "" : "s"
+      }:`,
+    );
+    for (const r of openReminders) console.error(`  · ${r.id}`);
+    console.error("[dckl] pass --force to close anyway.");
+    process.exitCode = 1;
+    return;
+  }
+
+  const res = await apiPatch(
+    dcklRoot,
+    `/api/sprints/${sprintId}/tasks/${taskId}`,
+    { status: "done" },
+    got.etag,
+  );
+  if (!res.ok) {
+    if (isServerDown(res)) {
+      reportServerDown(`pnpm dckl task close ${taskId}`);
+    } else {
+      console.error(`[dckl] close failed: ${res.status} ${res.error}`);
+    }
+    process.exitCode = 1;
+    return;
+  }
+
+  // Clear .active-task if it points here — no zombie pointer.
+  const activePath = join(dcklRoot, ".active-task");
+  if (existsSync(activePath)) {
+    try {
+      const lock = JSON.parse(readFileSync(activePath, "utf8")) as TaskLock;
+      if (lock.task_id === taskId) unlinkSync(activePath);
+    } catch {
+      // malformed lock — ignore, not this command's job to clean up
+    }
+  }
+
+  // Release the claim-field on the frontmatter too (API-side, idempotent).
+  await apiPost(
+    dcklRoot,
+    `/api/sprints/${sprintId}/tasks/${taskId}/release`,
+  );
+
+  console.log(`[dckl] ${taskId} closed (status: done)`);
+}

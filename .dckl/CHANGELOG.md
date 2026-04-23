@@ -2,6 +2,18 @@
 
 ## 2026-04-23
 
+- **16:35** · `DCK-12` · test `rejects-open-reminders` → checked
+
+- **16:35** · `DCK-12` · test `idempotent` → checked
+
+- **16:35** · `DCK-12` · test `release-claim` → checked
+
+- **16:35** · `DCK-12` · test `status-done` → checked
+
+- **16:34** · `DCK-12` · status `in_progress` → `done`
+
+- **16:34** · `DCK-12` · reminder `input-validation` → checked
+
 - **16:22** · `DCK-18` · reminder `secrets-not-committed` → checked
 
 - **16:22** · `DCK-18` · test `skill-moved` → checked
