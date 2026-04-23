@@ -1,7 +1,20 @@
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import type { SprintStatus } from "@dckl/server/schema";
+import { PanelLeftClose, PanelLeftOpen, Search } from "lucide-react";
+import { useState } from "react";
 import type { SprintListItem } from "../lib/api.js";
 import { cn } from "../lib/cn.js";
 import { navigate } from "../lib/use-route.js";
+
+type StatusFilter = "all" | "live" | SprintStatus;
+
+const STATUS_FILTERS: { id: StatusFilter; label: string }[] = [
+  { id: "all", label: "All" },
+  { id: "live", label: "Live" },
+  { id: "active", label: "Active" },
+  { id: "planning", label: "Planning" },
+  { id: "review", label: "Review" },
+  { id: "done", label: "Done" },
+];
 
 type Props = {
   sprints: SprintListItem[];
@@ -14,7 +27,22 @@ type Props = {
  * open corrections. Clicking a row opens that sprint's task board.
  */
 export function SprintsListView({ sprints, sidebarCollapsed, onToggleSidebar }: Props) {
-  const sorted = [...sprints].sort((a, b) => {
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<StatusFilter>("all");
+
+  const q = query.trim().toLowerCase();
+  const filtered = sprints.filter((s) => {
+    if (q && !s.name.toLowerCase().includes(q) && !s.goal.toLowerCase().includes(q)) {
+      return false;
+    }
+    if (filter === "live") {
+      return s.status === "active" || s.live === true;
+    }
+    if (filter !== "all" && s.status !== filter) return false;
+    return true;
+  });
+
+  const sorted = [...filtered].sort((a, b) => {
     const aLive = a.status === "active" || a.live === true;
     const bLive = b.status === "active" || b.live === true;
     if (aLive !== bLive) return aLive ? -1 : 1;
@@ -39,6 +67,16 @@ export function SprintsListView({ sprints, sidebarCollapsed, onToggleSidebar }: 
         </button>
         <span className="text-body text-text-primary font-medium">Sprints</span>
       </div>
+
+      <FilterBar
+        query={query}
+        onQueryChange={setQuery}
+        placeholder="Search sprints by name or goal…"
+        filter={filter}
+        onFilterChange={setFilter}
+        resultCount={sorted.length}
+        totalCount={sprints.length}
+      />
 
       <div className="flex-1 overflow-auto">
         <table className="w-full text-body">
@@ -109,6 +147,66 @@ export function SprintsListView({ sprints, sidebarCollapsed, onToggleSidebar }: 
             })}
           </tbody>
         </table>
+        {sorted.length === 0 && sprints.length > 0 && (
+          <div className="px-8 py-12 text-body text-text-tertiary">
+            No sprints match this filter.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FilterBar({
+  query,
+  onQueryChange,
+  placeholder,
+  filter,
+  onFilterChange,
+  resultCount,
+  totalCount,
+}: {
+  query: string;
+  onQueryChange: (v: string) => void;
+  placeholder: string;
+  filter: StatusFilter;
+  onFilterChange: (f: StatusFilter) => void;
+  resultCount: number;
+  totalCount: number;
+}) {
+  return (
+    <div className="border-b border-border-subtle px-6 py-3 flex items-center gap-4">
+      <label className="flex items-center gap-2 min-w-0 flex-1 max-w-[360px]">
+        <Search size={14} strokeWidth={1.5} className="text-text-tertiary shrink-0" />
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => onQueryChange(e.target.value)}
+          placeholder={placeholder}
+          className="flex-1 bg-transparent border-0 outline-none text-body text-text-primary placeholder:text-text-tertiary focus-visible:ring-0"
+        />
+      </label>
+      <div className="flex items-center gap-1">
+        {STATUS_FILTERS.map((f) => (
+          <button
+            key={f.id}
+            type="button"
+            onClick={() => onFilterChange(f.id)}
+            className={cn(
+              "px-2.5 py-1 rounded-[4px] text-label transition-colors",
+              filter === f.id
+                ? "bg-surface-elevated text-text-primary"
+                : "text-text-tertiary hover:text-text-primary hover:bg-surface-hover",
+            )}
+            aria-pressed={filter === f.id}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+      <div className="ml-auto text-label text-text-tertiary tabular-nums">
+        {resultCount}
+        {resultCount !== totalCount ? ` / ${totalCount}` : ""}
       </div>
     </div>
   );

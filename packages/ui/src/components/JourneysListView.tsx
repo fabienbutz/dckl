@@ -1,8 +1,16 @@
 import type { JourneyMeta } from "@dckl/server/schema";
-import { AlertTriangle, Loader2, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { AlertTriangle, Loader2, PanelLeftClose, PanelLeftOpen, Search } from "lucide-react";
+import { useState } from "react";
 import { cn } from "../lib/cn.js";
 import { useJourneys } from "../lib/queries.js";
 import { navigate } from "../lib/use-route.js";
+
+type JourneyFilter = "all" | "broken";
+
+const JOURNEY_FILTERS: { id: JourneyFilter; label: string }[] = [
+  { id: "all", label: "All" },
+  { id: "broken", label: "Broken only" },
+];
 
 type Props = {
   sidebarCollapsed: boolean;
@@ -11,6 +19,21 @@ type Props = {
 
 export function JourneysListView({ sidebarCollapsed, onToggleSidebar }: Props) {
   const journeys = useJourneys();
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<JourneyFilter>("all");
+
+  const all = journeys.data ?? [];
+  const q = query.trim().toLowerCase();
+  const filtered = all.filter((j) => {
+    if (q) {
+      const hay = `${j.name} ${j.description}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    if (filter === "broken") {
+      return j.steps.some((s) => s.status === "broken");
+    }
+    return true;
+  });
 
   return (
     <div className="h-full flex flex-col">
@@ -31,6 +54,43 @@ export function JourneysListView({ sidebarCollapsed, onToggleSidebar }: Props) {
         <span className="text-body text-text-primary font-medium">Journeys</span>
       </div>
 
+      {!journeys.isLoading && !journeys.isError && all.length > 0 && (
+        <div className="border-b border-border-subtle px-6 py-3 flex items-center gap-4">
+          <label className="flex items-center gap-2 min-w-0 flex-1 max-w-[360px]">
+            <Search size={14} strokeWidth={1.5} className="text-text-tertiary shrink-0" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search journeys by name or description…"
+              className="flex-1 bg-transparent border-0 outline-none text-body text-text-primary placeholder:text-text-tertiary focus-visible:ring-0"
+            />
+          </label>
+          <div className="flex items-center gap-1">
+            {JOURNEY_FILTERS.map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => setFilter(f.id)}
+                className={cn(
+                  "px-2.5 py-1 rounded-[4px] text-label transition-colors",
+                  filter === f.id
+                    ? "bg-surface-elevated text-text-primary"
+                    : "text-text-tertiary hover:text-text-primary hover:bg-surface-hover",
+                )}
+                aria-pressed={filter === f.id}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+          <div className="ml-auto text-label text-text-tertiary tabular-nums">
+            {filtered.length}
+            {filtered.length !== all.length ? ` / ${all.length}` : ""}
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 overflow-auto">
         {journeys.isLoading ? (
           <div className="flex items-center gap-2 text-text-tertiary p-8">
@@ -42,10 +102,14 @@ export function JourneysListView({ sidebarCollapsed, onToggleSidebar }: Props) {
             <AlertTriangle size={14} strokeWidth={1.5} />
             <span className="text-body">Failed to load journeys.</span>
           </div>
-        ) : (journeys.data ?? []).length === 0 ? (
+        ) : all.length === 0 ? (
           <div className="px-8 py-12 text-body text-text-tertiary">
             No journeys yet. Create one with{" "}
             <code className="font-mono text-text-secondary">dckl journey new &lt;slug&gt;</code>.
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="px-8 py-12 text-body text-text-tertiary">
+            No journeys match this filter.
           </div>
         ) : (
           <table className="w-full text-body">
@@ -59,7 +123,7 @@ export function JourneysListView({ sidebarCollapsed, onToggleSidebar }: Props) {
               </tr>
             </thead>
             <tbody>
-              {(journeys.data ?? []).map((journey) => (
+              {filtered.map((journey) => (
                 <JourneyRow key={journey.id} journey={journey} />
               ))}
             </tbody>
