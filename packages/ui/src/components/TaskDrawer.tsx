@@ -20,6 +20,8 @@ import {
   useTask,
 } from "../lib/queries.js";
 import { Checkbox } from "./Checkbox.js";
+import { MarkdownBody } from "./MarkdownBody.js";
+import { MarkdownInline } from "./MarkdownInline.js";
 import { ProgressPill } from "./ProgressPill.js";
 import { Section } from "./Section.js";
 import { classifyClaim } from "./StatusIcon.js";
@@ -50,6 +52,7 @@ export function TaskDrawer({ sprintId, taskId, onClose, onOpenDoc }: Props) {
   }, [templateEntries]);
 
   const meta: TaskMeta | undefined = task.data?.data.meta;
+  const body: string = task.data?.data.body ?? "";
   const claimState = classifyClaim(meta?.claim);
   const isLive = claimState === "fresh";
 
@@ -85,12 +88,7 @@ export function TaskDrawer({ sprintId, taskId, onClose, onOpenDoc }: Props) {
 
   return (
     <aside className="h-full flex flex-col border-l border-border-subtle bg-bg">
-      <div
-        className={cn(
-          "h-[64px] border-b flex items-center px-8 gap-4 transition-colors",
-          isLive ? "border-accent/60" : "border-border-subtle",
-        )}
-      >
+      <div className="h-[64px] border-b border-border-subtle flex items-center px-12 gap-3">
         <button
           type="button"
           onClick={onClose}
@@ -99,6 +97,7 @@ export function TaskDrawer({ sprintId, taskId, onClose, onOpenDoc }: Props) {
         >
           <X size={16} strokeWidth={1.5} />
         </button>
+        <div className="text-label text-text-tertiary tabular-nums">{meta?.id ?? "…"}</div>
         {isLive && (
           <motion.span
             animate={{ opacity: [1, 0.5, 1], scale: [1, 1.2, 1] }}
@@ -107,21 +106,23 @@ export function TaskDrawer({ sprintId, taskId, onClose, onOpenDoc }: Props) {
             aria-label="live — agent working"
           />
         )}
-        <div className="text-label text-text-tertiary tabular-nums">{meta?.id ?? "…"}</div>
         {isLive && meta?.claim && (
           <span className="text-label text-accent">{meta.claim.by}</span>
         )}
         <div className="ml-auto">{meta && <TypeBadge type={meta.type} />}</div>
       </div>
 
-      <div className="flex-1 overflow-auto px-8 py-8 space-y-10">
+      <div className="flex-1 overflow-auto px-12 py-8 space-y-10">
         {task.isLoading && <DrawerLoading />}
         {task.isError && <DrawerError />}
         {meta && (
           <>
-            <h2 className="text-heading-lg font-medium text-text-primary leading-snug">
-              {meta.title}
-            </h2>
+            <div>
+              <h2 className="text-[22px] leading-[32px] font-medium text-text-primary">
+                <MarkdownInline>{meta.title}</MarkdownInline>
+              </h2>
+              {body.trim().length > 0 && <MarkdownBody>{body}</MarkdownBody>}
+            </div>
 
             <Section
               icon={ShieldCheck}
@@ -142,7 +143,11 @@ export function TaskDrawer({ sprintId, taskId, onClose, onOpenDoc }: Props) {
                     key={reminder.id}
                     checked={reminder.checked}
                     onChange={(next) => onToggleReminder(reminder.id, next)}
-                    label={labels.get(reminder.id)?.label ?? reminder.id}
+                    label={
+                      <MarkdownInline>
+                        {labels.get(reminder.id)?.label ?? reminder.id}
+                      </MarkdownInline>
+                    }
                   />
                 ))
               )}
@@ -167,7 +172,7 @@ export function TaskDrawer({ sprintId, taskId, onClose, onOpenDoc }: Props) {
                     key={test.id}
                     checked={test.checked}
                     onChange={(next) => onToggleTest(test.id, next)}
-                    label={test.label}
+                    label={<MarkdownInline>{test.label}</MarkdownInline>}
                   />
                 ))
               )}
@@ -189,7 +194,7 @@ export function TaskDrawer({ sprintId, taskId, onClose, onOpenDoc }: Props) {
                       c.open ? "text-text-primary" : "text-text-tertiary line-through",
                     )}
                   >
-                    {c.text}
+                    <MarkdownInline>{c.text}</MarkdownInline>
                   </div>
                 ))
               )}

@@ -5,7 +5,7 @@ type Props = {
   checked: boolean;
   onChange: (next: boolean) => void;
   disabled?: boolean;
-  label?: string;
+  label?: React.ReactNode;
   className?: string;
 };
 

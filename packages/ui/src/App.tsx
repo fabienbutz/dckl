@@ -90,7 +90,7 @@ function AppInner() {
 
   return (
     <div className="min-h-screen">
-      <main className="flex h-screen">
+      <main className="flex h-screen relative">
         <Sidebar
           config={config.data?.data ?? null}
           sprints={sprints.data ?? []}
@@ -147,12 +147,12 @@ function AppInner() {
             <motion.div
               key="drawer"
               initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 420, opacity: 1 }}
+              animate={{ width: 780, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
               transition={{ type: "tween", duration: 0.22, ease: [0.2, 0, 0.2, 1] }}
-              className="overflow-hidden shrink-0"
+              className="absolute right-0 top-0 h-full z-20 overflow-hidden shadow-[-12px_0_32px_rgba(0,0,0,0.45)]"
             >
-              <div className="w-[420px] h-full">
+              <div className="w-[780px] h-full">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={selectedTaskId}

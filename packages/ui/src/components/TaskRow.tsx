@@ -1,5 +1,6 @@
 import type { TaskMeta } from "@deckel/server/schema";
 import { cn } from "../lib/cn.js";
+import { MarkdownInline } from "./MarkdownInline.js";
 import { ProgressPill } from "./ProgressPill.js";
 import { STATUS_CYCLE, STATUS_LABEL, StatusIcon } from "./StatusIcon.js";
 import { TypeBadge } from "./TypeBadge.js";
@@ -43,7 +44,9 @@ export function TaskRow({ task, selected, onSelect, onStatusCycle }: Props) {
       />
       <div className="text-body text-text-secondary tabular-nums">{task.id}</div>
       <div className={cn("text-body truncate", dim ? "line-through" : "text-text-primary")}>
-        {task.title}
+        <MarkdownInline codeClassName="font-mono text-[0.92em] text-text-secondary px-[5px] py-0 rounded-[3px] bg-white/[0.12]">
+          {task.title}
+        </MarkdownInline>
       </div>
       <div>
         <TypeBadge type={task.type} />

@@ -3,6 +3,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { cn } from "../lib/cn.js";
 import { useStackFile } from "../lib/queries.js";
+import { MD_COMPONENTS } from "./MarkdownBody.js";
 
 // Note: we deliberately do NOT import gray-matter into the UI bundle.
 // Parsing frontmatter client-side is a single regex — see splitFrontmatter
@@ -133,60 +134,3 @@ function renderValue(val: unknown): React.ReactNode {
   return String(val);
 }
 
-const MD_COMPONENTS = {
-  h1: (p: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h1 className="text-heading-lg font-medium text-text-primary mt-6 mb-3" {...p} />
-  ),
-  h2: (p: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h2 className="text-heading font-medium text-text-primary mt-6 mb-2" {...p} />
-  ),
-  h3: (p: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h3 className="text-body font-medium text-text-primary mt-5 mb-2" {...p} />
-  ),
-  p: (p: React.HTMLAttributes<HTMLParagraphElement>) => (
-    <p className="text-body text-text-secondary leading-relaxed my-3" {...p} />
-  ),
-  ul: (p: React.HTMLAttributes<HTMLUListElement>) => (
-    <ul className="text-body text-text-secondary pl-5 list-disc space-y-1.5 my-3" {...p} />
-  ),
-  ol: (p: React.HTMLAttributes<HTMLOListElement>) => (
-    <ol className="text-body text-text-secondary pl-5 list-decimal space-y-1.5 my-3" {...p} />
-  ),
-  li: (p: React.HTMLAttributes<HTMLLIElement>) => <li className="leading-relaxed" {...p} />,
-  code: (p: React.HTMLAttributes<HTMLElement>) => (
-    <code
-      className="font-mono text-label text-text-primary px-1 py-0.5 rounded-[3px] bg-surface-hover"
-      {...p}
-    />
-  ),
-  pre: (p: React.HTMLAttributes<HTMLPreElement>) => (
-    <pre
-      className="font-mono text-label text-text-primary p-4 rounded-[4px] border border-border-subtle bg-surface overflow-x-auto my-4"
-      {...p}
-    />
-  ),
-  blockquote: (p: React.HTMLAttributes<HTMLQuoteElement>) => (
-    <blockquote
-      className="border-l-2 border-border-strong pl-4 my-3 text-text-tertiary"
-      {...p}
-    />
-  ),
-  a: (p: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
-    <a className="text-accent underline underline-offset-2 hover:no-underline" {...p} />
-  ),
-  table: (p: React.HTMLAttributes<HTMLTableElement>) => (
-    <div className="overflow-x-auto my-4">
-      <table className="text-body text-text-secondary border-collapse" {...p} />
-    </div>
-  ),
-  th: (p: React.HTMLAttributes<HTMLTableCellElement>) => (
-    <th
-      className="text-left text-label text-text-tertiary font-medium px-3 py-2 border-b border-border-subtle"
-      {...p}
-    />
-  ),
-  td: (p: React.HTMLAttributes<HTMLTableCellElement>) => (
-    <td className="px-3 py-2 border-b border-border-subtle" {...p} />
-  ),
-  hr: () => <hr className="border-border-subtle my-6" />,
-};

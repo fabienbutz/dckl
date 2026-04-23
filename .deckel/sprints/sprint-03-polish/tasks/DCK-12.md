@@ -2,7 +2,7 @@
 schema: 1
 id: DCK-12
 sprint_id: sprint-03-polish
-title: deckel task close <id> — explicit status transition to done
+title: Task per CLI-Befehl abschließen (`deckel task close`)
 type: feature
 status: todo
 security_checks:
@@ -11,24 +11,24 @@ security_checks:
 test_criteria:
   - id: status-done
     label: >-
-      `deckel task close DCK-11` sets status=done in the task MD atomically
-      (ETag-guarded, same write path as /api/sprints/.../tasks/:id PATCH)
+      `deckel task close <id>` setzt `status=done` atomar (ETag-geschützt,
+      gleicher Schreib-Pfad wie `PATCH /api/sprints/.../tasks/:id`)
     checked: false
   - id: release-claim
     label: >-
-      Close also releases any active claim (clears .active-task if the task
-      was claimed) — no zombie pointers after close
+      Schließen gibt den aktiven Claim frei (`.active-task` wird geleert,
+      wenn die Task dort referenziert war) — keine Zombie-Pointer
     checked: false
   - id: idempotent
     label: >-
-      Closing an already-closed task is a no-op (prints a note, exits 0) —
-      does not bump `updated:` and does not append to the changelog
+      Schließen einer bereits geschlossenen Task ist ein No-op (Hinweis,
+      Exit 0) — kein `updated:`-Bump, kein CHANGELOG-Eintrag
     checked: false
   - id: rejects-open-reminders
     label: >-
-      Refuses to close while reminders (security_checks) are unchecked,
-      unless --force is passed. Mirrors the SKILL rule "don't close with open
-      reminders"
+      Verweigert das Schließen, solange `security_checks` offene Einträge
+      haben — außer mit `--force`. Entspricht der SKILL-Regel "don't close
+      with open reminders"
     checked: false
 corrections: []
 context_files:
@@ -38,43 +38,53 @@ context_files:
 depends_on: []
 pre_flight:
   - >-
-    Read SKILL.md's "Finishing a task" section — close semantics must match
-    what the skill already describes to agents.
+    SKILL.md-Abschnitt "Finishing a task" lesen — die close-Semantik muss
+    zu dem passen, was die Skill bereits an Agents kommuniziert.
   - >-
-    Decide whether close also writes to CHANGELOG.md — Sprint-02 already
-    appends on status changes, verify no double-entry.
+    Entscheiden, ob `close` zusätzlich in `CHANGELOG.md` schreibt —
+    Sprint-02 appendet bereits bei Status-Wechseln, Doppel-Einträge
+    verifizieren.
 ---
 
-## DCK-12: `deckel task close <id>`
+## Worum es geht
 
-During Sprint-02 close-out, moving tasks to `status: done` required a
-raw `curl -X PATCH` against the API. That's acceptable for an agent
-debugging once, but it's not the canonical user flow.
+Ein neuer CLI-Befehl `deckel task close <id>`, mit dem eine Task
+explizit als erledigt markiert wird — genauso einfach wie `task claim`
+oder `task release`. Der Befehl setzt `status=done`, gibt einen
+eventuell bestehenden Claim frei und schreibt einen CHANGELOG-Eintrag.
 
-### Why
+## Warum jetzt
 
-- `task release` clears the claim but leaves status untouched.
-- There is no CLI equivalent to the API's PATCH `{status: done}`.
-- SKILL.md tells agents to mark done "only when the user approves" —
-  but there is no ergonomic way to do that.
+Im Sprint-02 war der einzige Weg, eine Task abzuschließen, ein
+manueller `curl -X PATCH` gegen die API — umständlich genug, dass es
+im ganzen Sprint kein einziges Mal sauber gemacht wurde. `task release`
+gibt nur den Claim frei, setzt den Status aber nicht. Folge: Jede Task
+bleibt formal "in_progress", auch wenn sie längst fertig ist, und die
+Sidebar-Übersicht verliert jede Aussagekraft. Solange dieser Befehl
+fehlt, ist Deckel nicht dogfood-tauglich.
 
-### Semantics
+## Woran man merkt, dass es fertig ist
+
+- `deckel task close DCK-12` setzt `status=done` atomar, ETag-geschützt,
+  über denselben Schreib-Pfad wie der `PATCH`-Endpoint.
+- Der aktive Claim wird mit geschlossen: `.active-task` wird geleert,
+  wenn es auf diese Task zeigte — keine Zombie-Pointer.
+- Erneutes Schließen einer bereits geschlossenen Task ist ein No-op:
+  Hinweis ausgeben, Exit 0, `updated:` nicht bumpen, nichts ins
+  CHANGELOG schreiben.
+- Der Befehl verweigert den Abschluss, solange `security_checks` noch
+  offene Einträge haben — außer mit `--force`.
+
+## CLI-Signatur
 
 ```
-deckel task close DCK-11            # sets status=done, releases claim
-deckel task close DCK-11 --force    # closes even with open reminders
+deckel task close DCK-12            # erledigt markieren + Claim freigeben
+deckel task close DCK-12 --force    # auch bei offenen Reminders schließen
 ```
 
-- Idempotent: closing a `done` task prints a note and exits 0.
-- Refuses on open `security_checks` unless `--force` (mirrors the
-  manual workflow the SKILL describes).
-- Releases claim if present (clears `.active-task` only if that
-  pointer referenced this task).
-- Appends one CHANGELOG entry, same format as `task release`.
+## Out of scope
 
-### Out of scope
-
-- `task reopen` (reverse direction). Add later if needed.
-- Bulk close (`task close DCK-11 DCK-12`). One at a time.
-- Workflow state beyond `todo | in_progress | done` (no `review`,
-  `blocked`, etc.).
+- `task reopen` (Richtung zurück). Bei Bedarf später.
+- Mehrfach-Close (`task close DCK-11 DCK-12`). Eine Task pro Aufruf.
+- Zusätzliche Status-Werte jenseits von `todo | in_progress | done`
+  (kein `review`, `blocked`).

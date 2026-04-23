@@ -2,6 +2,30 @@
 
 ## 2026-04-23
 
+- **16:09** · `DCK-17` · reminder `input-validation` → checked
+
+- **16:09** · `DCK-17` · test `empty-body-graceful` → checked
+
+- **16:09** · `DCK-17` · test `styling-consistent` → checked
+
+- **16:09** · `DCK-17` · test `code-fences-rendered` → checked
+
+- **16:09** · `DCK-17` · test `inline-code-in-labels` → checked
+
+- **16:09** · `DCK-17` · test `body-rendered` → checked
+
+- **16:02** · `DCK-17` · correction added: _Drawer horizontales Padding erhöht: px-8 → px-12 (zusammen mit width bump auf 78_
+
+- **16:02** · `DCK-17` · correction added: _Drawer-Header: Amber-Border bei Live-Claim entfernt; Pulse-Dot + claim.by jetzt _
+
+- **16:02** · `DCK-17` · correction added: _Sidebar-TaskRow: Titel wird nun ebenfalls via MarkdownInline (compact-Variante, _
+
+- **16:02** · `DCK-17` · correction added: _Inline-Code-Styling nach 3 User-Iterationen: text-text-secondary, bg-white/[0.14_
+
+- **16:02** · `DCK-17` · correction added: _Globale MD_COMPONENTS-Typografie angehoben (p 14→15px, line-height 22→26px, h2→1_
+
+- **16:02** · `DCK-17` · correction added: _Drawer-Architektur: 420px Flex-Panel → 780px Overlay (absolute right-0, z-20), d_
+
 - **14:57** · `DCK-04` · status `in_progress` → `done`
 
 - **14:57** · `DCK-03` · status `in_progress` → `done`

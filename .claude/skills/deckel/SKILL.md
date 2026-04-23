@@ -163,6 +163,15 @@ when in doubt, ask.
   entry in `security_checks` or `test_criteria`.
 - When you discover a new issue mid-work, log it:
   `pnpm deckel correction add <TASK-ID> "<one-line description>"`.
+- **When the user redirects scope mid-work** (style tweaks, new
+  dimensions, added sub-features, "out of scope" that suddenly is
+  in), log a correction **before** executing the change — not after,
+  not at release. Shape: `correction add <ID> "<what changed> — <why>"`.
+  The *why* is the whole point: the git diff shows *what*, the
+  correction preserves *why*. This is the single most common drift
+  point — a chain of "etwas heller / noch heller / anderes padding"
+  tweaks silently reshapes the task without any record. Discipline:
+  write-then-code, not code-then-forget.
 - **Never set `status: done` yourself.** That is a user-only decision,
   made via the UI's status-icon cycle.
 
@@ -382,6 +391,7 @@ Avoid: `Update auth.ts` (vague), `WIP passkeys` (don't commit WIP),
 | User marks `done` with open criteria | Say so: "N reminders and M tests are still open. Still mark done?" Then respect the call. |
 | Release fails | Tell the user explicitly and give them the exact retry command. Don't silently move on. |
 | Grep patterns with regex metachars | Use `grep -F` for literal file-path matches. |
+| User redirects scope mid-work (style, size, new sub-feature) | Log a correction **first**, then execute. A chain of unrecorded "etwas heller / noch heller / anderes padding" tweaks becomes unreadable after one session. Why-line is mandatory; the git diff alone won't rescue you. |
 
 ---
 
