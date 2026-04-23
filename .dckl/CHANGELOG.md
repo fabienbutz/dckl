@@ -2,6 +2,18 @@
 
 ## 2026-04-23
 
+- **16:43** · `DCK-15` · status `in_progress` → `done`
+
+- **16:43** · `DCK-15` · reminder `input-validation` → checked
+
+- **16:43** · `DCK-15` · test `status-transitions` → checked
+
+- **16:43** · `DCK-15` · test `refuses-open-tasks` → checked
+
+- **16:43** · `DCK-15` · test `summary-written` → checked
+
+- **16:43** · `DCK-15` · test `archive-move` → checked
+
 - **16:39** · `DCK-14` · status `in_progress` → `done`
 
 - **16:39** · `DCK-14` · reminder `input-validation` → checked
@@ -270,3 +282,4 @@
 
 - **13:02** · `TSK-01` · status `in_progress` → `done`
 
+- **2026-04-23 14:42** · `sprint-99-test` · sprint closed (1 done / 2 tasks)

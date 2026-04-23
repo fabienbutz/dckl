@@ -7,6 +7,7 @@ import { runServe } from "./commands/serve.js";
 import { runDoctor } from "./commands/doctor.js";
 import { runExport } from "./commands/export.js";
 import { runJourneyList, runJourneyNew } from "./commands/journey.js";
+import { runSprintClose } from "./commands/sprint.js";
 import { runStatus } from "./commands/status.js";
 import { runStop } from "./commands/stop.js";
 import { type VisionInitOptions, runVisionInit } from "./commands/vision.js";
@@ -156,6 +157,19 @@ program
   .action(async (opts: { json?: boolean; fix?: boolean }) => {
     const { code } = await runDoctor(opts);
     process.exit(code);
+  });
+
+const sprintCmd = program
+  .command("sprint")
+  .description("Sprint operations (archive, close — sprint creation is manual for now)");
+
+sprintCmd
+  .command("close <id>")
+  .description("Archive a sprint: write SUMMARY.md, set status=done, move to .archive/")
+  .option("--force", "Close even if non-done tasks remain")
+  .option("--dry-run", "Print the plan without writing anything")
+  .action(async (id: string, opts: { force?: boolean; dryRun?: boolean }) => {
+    await runSprintClose(id, opts);
   });
 
 const journeyCmd = program

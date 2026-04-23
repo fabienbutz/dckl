@@ -4,32 +4,32 @@ id: DCK-15
 sprint_id: sprint-03-polish
 title: dckl sprint close <id> — archive + summary + pointer rotation
 type: feature
-status: todo
+status: done
 security_checks:
   - id: input-validation
-    checked: false
+    checked: true
 test_criteria:
   - id: archive-move
     label: >-
       `dckl sprint close sprint-02-dogfood` moves the folder to
       `.dckl/sprints/.archive/sprint-02-dogfood/` atomically
-    checked: false
+    checked: true
   - id: summary-written
     label: >-
       Writes `SUMMARY.md` inside the archived sprint: task count, done/open
       corrections, duration, and a changelog excerpt for the sprint window
-    checked: false
+    checked: true
   - id: refuses-open-tasks
     label: >-
-      Refuses to close a sprint with non-done tasks unless `--force` —
-      prevents accidental archival of in-flight work
-    checked: false
+      Refuses to close a sprint with non-done tasks unless `--force` — prevents
+      accidental archival of in-flight work
+    checked: true
   - id: status-transitions
     label: >-
       Sets sprint index.md `status: done`, clears `.active-task` if it
-      referenced a task in this sprint, and removes the sprint from the
-      default "active" lookup
-    checked: false
+      referenced a task in this sprint, and removes the sprint from the default
+      "active" lookup
+    checked: true
 corrections: []
 context_files:
   - packages/cli/src/commands/sprint.ts
@@ -42,8 +42,9 @@ pre_flight:
     Sprint-02 was closed manually today — 10 PATCHes to set status=done,
     .active-task stayed stale, no summary written. Codify the flow.
   - >-
-    Archive directory already exists — `.dckl/sprints/.archive/` was used
-    for sprint-01-demo. Keep that layout.
+    Archive directory already exists — `.dckl/sprints/.archive/` was used for
+    sprint-01-demo. Keep that layout.
+updated: '2026-04-23T14:43:34.058Z'
 ---
 
 ## DCK-15: `dckl sprint close <id>`
