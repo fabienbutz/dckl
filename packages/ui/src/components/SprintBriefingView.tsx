@@ -1,12 +1,16 @@
-import { AlertTriangle, Loader2 } from "lucide-react";
+import { AlertTriangle, Loader2, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { cn } from "../lib/cn.js";
 import { useSprint } from "../lib/queries.js";
+import { navigate } from "../lib/use-route.js";
 import { MarkdownBody } from "./MarkdownBody.js";
 
 type Props = {
   sprintId: string;
+  sidebarCollapsed: boolean;
+  onToggleSidebar: () => void;
 };
 
-export function SprintBriefingView({ sprintId }: Props) {
+export function SprintBriefingView({ sprintId, sidebarCollapsed, onToggleSidebar }: Props) {
   const q = useSprint(sprintId);
 
   if (q.isLoading) {
@@ -31,8 +35,47 @@ export function SprintBriefingView({ sprintId }: Props) {
   const hasBody = body.trim().length > 0;
 
   return (
-    <div className="h-full overflow-auto px-12 py-10">
-      <div className="max-w-3xl">
+    <div className="h-full flex flex-col">
+      <div className="h-[64px] border-b border-border-subtle flex items-center px-6 gap-4">
+        <button
+          type="button"
+          onClick={onToggleSidebar}
+          className="p-1.5 rounded-[4px] text-text-tertiary hover:text-text-primary hover:bg-surface-hover transition-colors"
+          aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={`${sidebarCollapsed ? "Expand" : "Collapse"} sidebar (⌘\\)`}
+        >
+          {sidebarCollapsed ? (
+            <PanelLeftOpen size={16} strokeWidth={1.5} />
+          ) : (
+            <PanelLeftClose size={16} strokeWidth={1.5} />
+          )}
+        </button>
+        <div className="text-label text-text-tertiary tabular-nums">{meta.id}</div>
+        <div className="text-text-muted">/</div>
+        <div className="text-body text-text-primary font-medium truncate">{meta.name}</div>
+        <nav className="ml-4 flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => navigate({ kind: "sprint", sprintId: meta.id })}
+            className="px-3 py-1 rounded-[4px] text-label text-text-tertiary hover:text-text-primary hover:bg-surface-hover transition-colors"
+          >
+            Tasks
+          </button>
+          <button
+            type="button"
+            className={cn(
+              "px-3 py-1 rounded-[4px] text-label",
+              "bg-surface-elevated text-text-primary",
+            )}
+            aria-pressed
+          >
+            Briefing
+          </button>
+        </nav>
+      </div>
+
+      <div className="flex-1 overflow-auto px-12 py-10">
+        <div className="max-w-3xl">
         <div className="flex items-baseline gap-3 flex-wrap mb-2">
           <span className="text-label text-text-tertiary tabular-nums">
             {meta.id}
@@ -81,6 +124,7 @@ export function SprintBriefingView({ sprintId }: Props) {
             — alles unterhalb des Frontmatters landet hier.
           </div>
         )}
+        </div>
       </div>
     </div>
   );

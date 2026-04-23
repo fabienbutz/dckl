@@ -143,7 +143,11 @@ function AppInner() {
               onSelectFile={(file) => navigate({ kind: "stack", path: file })}
             />
           ) : route.kind === "sprint-briefing" ? (
-            <SprintBriefingView sprintId={route.sprintId} />
+            <SprintBriefingView
+              sprintId={route.sprintId}
+              sidebarCollapsed={sidebarCollapsed}
+              onToggleSidebar={toggleSidebar}
+            />
           ) : route.kind === "journey" && activeJourneyId ? (
             <JourneyView journeyId={activeJourneyId} />
           ) : (
