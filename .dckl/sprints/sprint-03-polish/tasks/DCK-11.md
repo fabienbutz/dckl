@@ -48,35 +48,38 @@ pre_flight:
 updated: '2026-04-23T14:48:32.474Z'
 ---
 
-## DCK-11: Sidebar task rows — summary line + layout polish
+## Worum es geht
 
-The SprintBoard sidebar currently shows one line per task: the title.
-At a glance, there's no way to tell `DCK-12` ("task close command")
-apart from `DCK-15` ("sprint close command") without clicking each
-row. Add a second line per row with a short summary.
+Die SprintBoard-Sidebar zeigt aktuell nur den Titel pro Zeile. Auf
+einen Blick kann man `DCK-12` ("task close") und `DCK-15` ("sprint
+close") nicht ohne Klick unterscheiden. Diese Task fügt eine zweite
+Zeile pro Row mit einer kurzen Zusammenfassung hinzu.
 
-### Why
+## Warum jetzt
 
-Maintainer reported: "die sidebar ist etwas unübersichtlich. ich
-bräuchte eine description von jedem task." Confirmed during
-Sprint-02 — every task switch needed a drawer open to recall context.
+Maintainer-Feedback: *„Die Sidebar ist unübersichtlich, ich bräuchte
+eine Description von jedem Task."* Während Sprint-02 musste für jeden
+Task-Wechsel der Drawer geöffnet werden, nur um den Kontext
+zurückzubekommen.
 
-### Approach
+## Ansatz
 
-Auto-extract the summary — no new frontmatter field, no migration:
+Auto-Extraktion — kein neues Frontmatter-Feld, keine Migration:
 
-1. Server parses the task body, walks past the `## <ID>: <title>`
-   heading, and grabs the first prose paragraph.
-2. If the first paragraph is a section heading (`###`), skip to the
-   next prose block.
-3. Strip markdown, collapse whitespace, truncate to ~120 chars.
-4. Expose as `summary: string | null` on the task payload.
+1. Server parst den Body, überspringt das führende `##`-Heading
+   (Titel), geht ggf. über weitere `###`-Sub-Headings hinweg und
+   greift den ersten Prose-Block.
+2. Strippt Inline-Markdown (Backticks, Bold, Links) und normalisiert
+   Whitespace.
+3. Truncated auf 160 Zeichen mit Ellipsis.
+4. Veröffentlicht als `summary: string | null` auf dem Task-Payload
+   (derived, nicht persistiert).
 
-The UI renders it with `text-text-tertiary` below the title, single
-line, `truncate` class.
+UI rendert den Summary in einer zweiten Zeile unter dem Titel mit
+`text-label text-text-tertiary` + `truncate`.
 
-### Out of scope
+## Out of scope
 
-- Rich-text rendering in the sidebar (bold, links, etc.).
-- Editable summary field.
-- Multi-line descriptions.
+- Rich-Text-Rendering in der Sidebar (Bold, Links im Summary).
+- Editierbares Summary-Feld.
+- Mehrzeiliger Summary-Text.
