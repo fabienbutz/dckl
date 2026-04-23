@@ -3,7 +3,7 @@ schema: 1
 id: sprint-02-dogfood
 name: Dogfood Deckel on itself
 goal: Build the features Deckel needs to track its own development, and prove the tool survives real daily use before any distribution push
-status: active
+status: done
 start: 2026-04-23
 end: 2026-05-14
 based_on: null
