@@ -2,7 +2,7 @@
 schema: 1
 id: DCK-21
 sprint_id: sprint-03-polish
-title: "`dckl sync-commits`: Git-Log mit Tasks abgleichen (Read-only)"
+title: "Commits pro Task sichtbar machen (`dckl sync-commits` + Drawer-Section)"
 type: feature
 status: todo
 security_checks: []
@@ -29,10 +29,26 @@ test_criteria:
       Mit `--json` gibt der Befehl maschinenlesbares JSON aus, das von
       UI oder externen Tools konsumiert werden kann.
     checked: false
+  - id: drawer-section
+    label: >-
+      Der `TaskDrawer` zeigt unter einer "Commits"-Sektion alle
+      referenzierenden Commits der aktuellen Task (Hash verkürzt,
+      Subject, relative Zeit). Sektion ist leer-graceful (zeigt
+      "no commits yet" wenn keine Referenzen).
+    checked: false
+  - id: api-endpoint
+    label: >-
+      Server-Endpoint `GET /api/sprints/:sprintId/commits` liefert eine
+      Map `{ taskId: [{sha, subject, date}] }`. Client holt sich das
+      einmal pro Sprint, cacht via React Query.
+    checked: false
 corrections: []
 context_files:
   - packages/cli/src/commands/sync-commits.ts
   - packages/cli/src/cli.ts
+  - packages/server/src/routes/commits.ts
+  - packages/ui/src/components/TaskDrawer.tsx
+  - packages/ui/src/lib/queries.ts
 depends_on:
   - DCK-18
 pre_flight:

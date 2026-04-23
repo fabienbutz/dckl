@@ -295,21 +295,42 @@ task-specific.
 #### Body template
 
 ```markdown
-## <Title — do NOT repeat the task ID>
+## Worum es geht
 
-One paragraph: WHAT this implements, as if explaining to a teammate
-joining today.
+2–4 Sätze: Was wird gebaut. Als Briefing für einen cross-functional
+Teammate formuliert (Designer, PM, Marketer) — nicht als Implementation-
+Spec für Claude. Technische Begriffe (`file.ts`, `dckl task close`,
+`POST /api/...`) in Backticks **innerhalb** natürlicher Sprache, nicht
+als Jargon-Salat.
 
-### Why
-One paragraph: motivation. Link to a business constraint or vision
-anchor. Without this, future-you makes reasonable-looking but wrong
-decisions.
+## Warum jetzt
 
-### Out of scope          # required when scope is non-obvious; omit otherwise
-- bullets of things a reader might assume are part of this but aren't
+2–3 Sätze: Welches Problem löst das, welche Vision-Ankerung. Ohne dieses
+"Warum" trifft future-you reasonable-looking aber falsche Entscheidungen.
+
+## Woran man merkt, dass es fertig ist
+
+Bullet-Liste der Abnahmekriterien. Jeder Bullet prüfbar. Präzision
+erlaubt — technische Details gehören hier rein (ETag, atomic, Exit-Code).
+
+## Out of scope              # nur wenn Scope sonst unklar ist
+- Dinge, die ein Leser reasonably dazuzählen würde, die aber bewusst
+  draußen bleiben.
 ```
 
-Do not repeat the task ID or title as an H2 — already in the frontmatter.
+**Language rule.** Der Body ist in der Sprache, in der der User
+kommuniziert (meist die Sprache der `VISION.md`). Identifier, Commands,
+API-Pfade, Parameter-Namen **bleiben in Originalform** (fast immer
+Englisch) — auch in deutschem/französischem/… Body. Kein
+eingedeutschtes `Atomare-Schreibeaktion` — das heißt `atomic write`.
+
+**Tone rule.** Body = Briefing für Menschen, nicht für Agenten. Wenn
+der Text nur Claude Sinn ergibt, umformulieren bis ein Nicht-Entwickler
+(Designer, PM) ihn versteht. Faustregel: Liest die erste Person, die
+nicht am Code mitschreibt, den Body und nickt → gut. Sagt sie „was
+bedeutet das?" → zu technisch.
+
+Do not repeat the task ID or title — they live in the frontmatter.
 Duplication guarantees drift.
 
 #### Anti-patterns — recognise and refuse
