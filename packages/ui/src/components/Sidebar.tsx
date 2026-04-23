@@ -94,9 +94,6 @@ export function Sidebar({
                   <span className="flex-1 truncate" title={sprint.name}>
                     {displaySprintName(sprint)}
                   </span>
-                  {sprint.status === "active" && (
-                    <span className="text-label text-text-tertiary">Active</span>
-                  )}
                 </button>
               </li>
             ))}
@@ -332,10 +329,13 @@ function displaySprintName(sprint: SprintMeta): string {
 }
 
 function StatusDot({ status }: { status: SprintMeta["status"] }) {
-  // Monochrome: status encoded via shape and fill, not colour.
+  // `active` uses amber — same accent that signals "work in progress"
+  // on task-level (fresh claim pulse). Sprint `active` is the sprint
+  // analogue, so the amber rule extends consistently. Everything else
+  // stays monochrome.
   switch (status) {
     case "active":
-      return <span className="w-[6px] h-[6px] rounded-full bg-text-primary shrink-0" />;
+      return <span className="w-[6px] h-[6px] rounded-full bg-accent shrink-0" />;
     case "planning":
       return (
         <span className="w-[6px] h-[6px] rounded-full border border-text-tertiary shrink-0" />
