@@ -7,6 +7,7 @@ import { useSyncExternalStore } from "react";
  */
 export type Route =
   | { kind: "home" }
+  | { kind: "sprints-list" }
   | { kind: "sprint"; sprintId: string }
   | { kind: "sprint-briefing"; sprintId: string }
   | { kind: "task"; sprintId: string; taskId: string }
@@ -27,7 +28,8 @@ export function parseHash(hash: string): Route {
     }
   });
 
-  if (parts[0] === "sprints" && parts[1]) {
+  if (parts[0] === "sprints") {
+    if (!parts[1]) return { kind: "sprints-list" };
     const sprintId = parts[1];
     if (parts[2] === "tasks" && parts[3]) {
       return { kind: "task", sprintId, taskId: parts[3] };
@@ -55,6 +57,8 @@ export function toHash(route: Route): string {
   switch (route.kind) {
     case "home":
       return "#/";
+    case "sprints-list":
+      return "#/sprints";
     case "sprint":
       return `#/sprints/${encodeURIComponent(route.sprintId)}`;
     case "sprint-briefing":

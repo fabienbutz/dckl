@@ -9,13 +9,13 @@ export function sprintRoutes(store: Store): Hono {
 
   app.get("/", async (c) => {
     const sprints = await store.listSprints();
-    const withLive = await Promise.all(
+    const withDerived = await Promise.all(
       sprints.map(async (meta) => ({
         ...meta,
-        live: await computeLive(store, meta),
+        ...(await computeDerived(store, meta)),
       })),
     );
-    return c.json({ sprints: withLive });
+    return c.json({ sprints: withDerived });
   });
 
   app.get("/:id", async (c) => {
@@ -35,21 +35,41 @@ export function sprintRoutes(store: Store): Hono {
   return app;
 }
 
+type SprintDerived = {
+  live: boolean;
+  tasks_total: number;
+  tasks_done: number;
+  tasks_in_progress: number;
+  corrections_open: number;
+};
+
 /**
- * Derived "someone is actually working on this sprint right now" flag.
- * True when any task has `status: in_progress` or a fresh claim. Purely
- * read-only — the user's declared `status` stays authoritative for
- * intent, `live` complements it for observed reality.
+ * Derived sprint-level aggregates. `live` is true when any task is
+ * in-progress or has a fresh claim heartbeat. The counts feed the
+ * sprints-list table view so the UI can render progress without
+ * fetching each task individually. Single pass over task files.
  */
-async function computeLive(store: Store, sprint: SprintMeta): Promise<boolean> {
+async function computeDerived(store: Store, sprint: SprintMeta): Promise<SprintDerived> {
+  const derived: SprintDerived = {
+    live: false,
+    tasks_total: sprint.task_ids.length,
+    tasks_done: 0,
+    tasks_in_progress: 0,
+    corrections_open: 0,
+  };
   for (const taskId of sprint.task_ids) {
     try {
       const { task } = await store.getTask(sprint.id, taskId);
-      if (task.meta.status === "in_progress") return true;
-      if (task.meta.claim && isClaimFresh(task.meta.claim)) return true;
+      if (task.meta.status === "done") derived.tasks_done++;
+      if (task.meta.status === "in_progress") {
+        derived.tasks_in_progress++;
+        derived.live = true;
+      }
+      if (task.meta.claim && isClaimFresh(task.meta.claim)) derived.live = true;
+      derived.corrections_open += task.meta.corrections.filter((c) => c.open).length;
     } catch {
       // Task file missing or malformed — skip, Doctor surfaces it elsewhere.
     }
   }
-  return false;
+  return derived;
 }

@@ -50,10 +50,20 @@ export function SprintBriefingView({ sprintId, sidebarCollapsed, onToggleSidebar
             <PanelLeftClose size={16} strokeWidth={1.5} />
           )}
         </button>
-        <div className="text-label text-text-tertiary tabular-nums">{meta.id}</div>
-        <div className="text-text-muted">/</div>
-        <div className="text-body text-text-primary font-medium truncate">{meta.name}</div>
-        <nav className="ml-4 flex items-center gap-1">
+        <div className="flex items-center gap-2 min-w-0">
+          <button
+            type="button"
+            onClick={() => navigate({ kind: "sprints-list" })}
+            className="text-body text-text-tertiary hover:text-text-primary transition-colors"
+          >
+            Sprints
+          </button>
+          <span className="text-text-muted">›</span>
+          <span className="text-body text-text-primary font-medium truncate">
+            {meta.name}
+          </span>
+        </div>
+        <nav className="ml-auto flex items-center gap-1">
           <button
             type="button"
             onClick={() => navigate({ kind: "sprint", sprintId: meta.id })}
@@ -75,7 +85,7 @@ export function SprintBriefingView({ sprintId, sidebarCollapsed, onToggleSidebar
       </div>
 
       <div className="flex-1 overflow-auto px-12 py-10">
-        <div className="max-w-3xl">
+        <div className="max-w-[720px] mx-auto">
         <div className="flex items-baseline gap-3 flex-wrap mb-2">
           <span className="text-label text-text-tertiary tabular-nums">
             {meta.id}

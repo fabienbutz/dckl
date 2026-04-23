@@ -10,6 +10,7 @@ import { PagesView } from "./components/PagesView.js";
 import { Sidebar } from "./components/Sidebar.js";
 import { SprintBoard } from "./components/SprintBoard.js";
 import { SprintBriefingView } from "./components/SprintBriefingView.js";
+import { SprintsListView } from "./components/SprintsListView.js";
 import { StackView } from "./components/StackView.js";
 import { TaskDrawer } from "./components/TaskDrawer.js";
 import { ApiError } from "./lib/api.js";
@@ -131,7 +132,13 @@ function AppInner() {
           collapsed={sidebarCollapsed}
         />
         <div className="flex-1 min-w-0">
-          {route.kind === "changelog" ? (
+          {route.kind === "sprints-list" ? (
+            <SprintsListView
+              sprints={sprints.data ?? []}
+              sidebarCollapsed={sidebarCollapsed}
+              onToggleSidebar={toggleSidebar}
+            />
+          ) : route.kind === "changelog" ? (
             <ChangelogView />
           ) : route.kind === "stack" ? (
             <StackView

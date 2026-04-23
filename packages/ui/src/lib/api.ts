@@ -19,6 +19,14 @@ export type CommitRef = {
   body: string;
 };
 
+export type SprintListItem = SprintMeta & {
+  live?: boolean;
+  tasks_total?: number;
+  tasks_done?: number;
+  tasks_in_progress?: number;
+  corrections_open?: number;
+};
+
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
@@ -127,7 +135,7 @@ export const api = {
   getSecurityTemplates: () =>
     request<SecurityCheckTemplates>("/api/templates/security-checks"),
   getSprints: () =>
-    request<{ sprints: Array<SprintMeta & { live?: boolean }> }>("/api/sprints"),
+    request<{ sprints: SprintListItem[] }>("/api/sprints"),
   getSprint: (id: string) => request<Sprint>(`/api/sprints/${encodeURIComponent(id)}`),
   getSprintCommits: (id: string) =>
     request<{ commits: Record<string, CommitRef[]> }>(
