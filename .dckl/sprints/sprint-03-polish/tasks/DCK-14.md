@@ -42,34 +42,45 @@ pre_flight:
 updated: '2026-04-23T14:39:55.188Z'
 ---
 
-## DCK-14: Doctor — stale pointers + VISION staleness
+## Worum es geht
 
-Two concrete doctor gaps, both surfaced by Sprint-02 corrections:
+Zwei konkrete Doctor-Lücken, beide aus Sprint-02-Corrections
+entstanden:
 
-1. **Stale `.active-task`** — when a sprint is archived, the pointer
-   isn't cleared. The CLI then treats a no-longer-existing task as
-   active, heartbeat writes fail silently.
-2. **VISION.md missing `updated:`** — `dckl status` reads the vision
-   and relies on `updated:` for staleness. If the field is absent the
-   heuristic silently returns "fresh" and the vision rots.
+1. **Stale `.active-task`** — wenn ein Sprint archiviert wird oder
+   ein manuell geschriebener Pointer auf eine nicht mehr existierende
+   Task zeigt, bleibt die Datei liegen. Die CLI hält sie für aktiv,
+   Heartbeats laufen ins Leere.
+2. **`VISION.md` ohne `updated:`** — `dckl status` und der Doctor
+   benutzen `updated:` für die Stale-Heuristik. Fehlt das Feld, sagt
+   die Heuristik still "ist frisch", die Vision rottet unbemerkt.
 
-### Approach
+Zusätzlich: `dckl doctor --fix` löscht sicher-korrigierbare Fälle
+(heute: orphan/malformed `.active-task`). `VISION.md` wird bewusst
+**nicht** automatisch angepasst — das ist eine menschliche
+Entscheidung.
+
+## Warum jetzt
+
+Genau diese zwei Fälle sind in Sprint-02 aufgetreten (DCK-06 c1:
+stale Pointer nach Archivierung; DCK-06 c3: fehlendes `updated:`).
+Ohne Doctor-Auslöser merkt niemand etwas, bis sich das Tool seltsam
+verhält.
+
+## Beispiel-Output
 
 ```
 dckl doctor
-  …
-  ✓ .dckl/config.yaml present
-  ✗ .active-task points to TSK-01 (sprint-01-demo is archived)
-    → run `dckl doctor --fix` to clear
-  ✗ VISION.md has no `updated:` field
-  ⚠ VISION.md updated 127d ago — consider refreshing
+  ✓ config — config.yaml valid
+  ⚠ active-task-orphan — `.active-task` points at sprint-03/DCK-999
+    but no such task file exists. Run `dckl doctor --fix` to clear.
+  ⚠ vision-updated-missing — VISION.md has no `updated:` field.
+  ⚠ vision-stale — VISION.md is 127 days old — consider a review.
 ```
 
-`--fix` clears stale `.active-task`. It does **not** touch VISION.md
-— that's a manual decision ("is my vision still right?").
+## Out of scope
 
-### Out of scope
-
-- A `dckl doctor --fix-all` that rewrites VISION.md.
-- Detecting drift between task `depends_on` and sprint task_ids.
-- Performance / timing checks on the server.
+- `--fix-all`, das auch `VISION.md` anfasst. Zu invasiv — Vision ist
+  menschliche Entscheidung.
+- Drift-Check zwischen Task-`depends_on` und Sprint-`task_ids`.
+- Performance- und Timing-Checks am Server.
