@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { AlertTriangle, Loader2, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { cn } from "../lib/cn.js";
 import { useSprint } from "../lib/queries.js";
-import { SprintBriefing } from "./SprintBriefing.js";
+import { navigate } from "../lib/use-route.js";
 import { ROW_GRID, TaskRow, type TaskRowData } from "./TaskRow.js";
 
 type Props = {
@@ -75,14 +75,21 @@ export function SprintBoard({
         <div className="text-label text-text-tertiary tabular-nums">{meta.id}</div>
         <div className="text-text-muted">/</div>
         <div className="text-body text-text-primary font-medium truncate">{meta.name}</div>
+        <nav className="ml-4 flex items-center gap-1">
+          <TabButton active label="Tasks" onClick={() => {}} />
+          <TabButton
+            label="Briefing"
+            onClick={() =>
+              navigate({ kind: "sprint-briefing", sprintId: meta.id })
+            }
+          />
+        </nav>
         <div className="ml-auto flex items-center gap-3">
           <span className="text-label text-text-tertiary">{STATUS_LABEL[meta.status]}</span>
         </div>
       </div>
 
       <div className="flex-1 overflow-auto">
-        <SprintBriefing sprint={sprintData} />
-
         <div
           className={cn(
             "grid items-center h-[44px] px-8 border-b border-border-subtle text-label text-text-tertiary",
@@ -123,5 +130,31 @@ export function SprintBoard({
         </div>
       </div>
     </div>
+  );
+}
+
+function TabButton({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "px-3 py-1 rounded-[4px] text-label transition-colors",
+        active
+          ? "bg-surface-elevated text-text-primary"
+          : "text-text-tertiary hover:text-text-primary hover:bg-surface-hover",
+      )}
+      aria-pressed={active}
+    >
+      {label}
+    </button>
   );
 }

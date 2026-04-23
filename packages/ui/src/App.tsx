@@ -9,6 +9,7 @@ import { JourneyView } from "./components/JourneyView.js";
 import { PagesView } from "./components/PagesView.js";
 import { Sidebar } from "./components/Sidebar.js";
 import { SprintBoard } from "./components/SprintBoard.js";
+import { SprintBriefingView } from "./components/SprintBriefingView.js";
 import { StackView } from "./components/StackView.js";
 import { TaskDrawer } from "./components/TaskDrawer.js";
 import { ApiError } from "./lib/api.js";
@@ -139,6 +140,8 @@ function AppInner() {
             <PagesView
               onSelectFile={(file) => navigate({ kind: "stack", path: file })}
             />
+          ) : route.kind === "sprint-briefing" ? (
+            <SprintBriefingView sprintId={route.sprintId} />
           ) : route.kind === "journey" && activeJourneyId ? (
             <JourneyView journeyId={activeJourneyId} />
           ) : (

@@ -2,6 +2,16 @@
 
 ## 2026-04-23
 
+- **20:46** · `DCK-25` · status `in_progress` → `done`
+
+- **20:46** · `DCK-25` · test `empty-graceful` → checked
+
+- **20:46** · `DCK-25` · test `briefing-replaces-card` → checked
+
+- **20:46** · `DCK-25` · test `tab-switcher` → checked
+
+- **20:46** · `DCK-25` · test `own-url` → checked
+
 - **20:45** · `DCK-24` · status `in_progress` → `done`
 
 - **20:45** · `DCK-24` · test `fallback` → checked

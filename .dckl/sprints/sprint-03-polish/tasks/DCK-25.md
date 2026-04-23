@@ -2,33 +2,33 @@
 schema: 1
 id: DCK-25
 sprint_id: sprint-03-polish
-title: "Sprint-Briefing als eigene Seite mit eigener URL"
+title: Sprint-Briefing als eigene Seite mit eigener URL
 type: feature
-status: todo
+status: done
 security_checks: []
 test_criteria:
   - id: own-url
     label: >-
-      `#/sprints/:sprintId/briefing` öffnet die Briefing-Seite. Die
-      URL ist shareable (Slack-Link → direktes Briefing im Browser).
-    checked: false
+      `#/sprints/:sprintId/briefing` öffnet die Briefing-Seite. Die URL ist
+      shareable (Slack-Link → direktes Briefing im Browser).
+    checked: true
   - id: tab-switcher
     label: >-
-      SprintBoard-Header bekommt einen Tab-Switcher zwischen "Tasks"
-      (default) und "Briefing". Aktiver Tab spiegelt die URL.
-    checked: false
+      SprintBoard-Header bekommt einen Tab-Switcher zwischen "Tasks" (default)
+      und "Briefing". Aktiver Tab spiegelt die URL.
+    checked: true
   - id: briefing-replaces-card
     label: >-
-      Die inline `SprintBriefing`-Karte aus DCK-23 ist auf der
-      Tasks-Ansicht **entfernt**. Sprint-Header zeigt nur noch Name,
-      Status, Window — Details in der Briefing-Seite.
-    checked: false
+      Die inline `SprintBriefing`-Karte aus DCK-23 ist auf der Tasks-Ansicht
+      **entfernt**. Sprint-Header zeigt nur noch Name, Status, Window — Details
+      in der Briefing-Seite.
+    checked: true
   - id: empty-graceful
     label: >-
-      Sprints mit leerem `index.md`-Body zeigen auf der Briefing-Seite
-      einen Hinweis ("Kein Briefing gepflegt — schreibe in
+      Sprints mit leerem `index.md`-Body zeigen auf der Briefing-Seite einen
+      Hinweis ("Kein Briefing gepflegt — schreibe in
       `.dckl/sprints/:id/index.md`"), keine leere Seite.
-    checked: false
+    checked: true
 corrections: []
 context_files:
   - packages/ui/src/components/SprintBriefingView.tsx
@@ -39,12 +39,13 @@ depends_on:
   - DCK-24
 pre_flight:
   - >-
-    Direktes User-Feedback: „Das mit dem Briefing gefällt mir so
-    nicht. Das braucht eine extra Seite!". Inline-Karte wird durch
-    eigene URL + Tab-Switch ersetzt.
+    Direktes User-Feedback: „Das mit dem Briefing gefällt mir so nicht. Das
+    braucht eine extra Seite!". Inline-Karte wird durch eigene URL + Tab-Switch
+    ersetzt.
   - >-
-    DCK-23's `SprintBriefing`-Komponente wird recycelt — nur der
-    Container (Karte vs. full page) ändert sich.
+    DCK-23's `SprintBriefing`-Komponente wird recycelt — nur der Container
+    (Karte vs. full page) ändert sich.
+updated: '2026-04-23T18:46:42.585Z'
 ---
 
 ## Worum es geht
