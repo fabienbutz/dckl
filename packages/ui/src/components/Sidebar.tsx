@@ -91,7 +91,9 @@ export function Sidebar({
                   )}
                 >
                   <StatusDot status={sprint.status} />
-                  <span className="flex-1 truncate">{sprint.name}</span>
+                  <span className="flex-1 truncate" title={sprint.name}>
+                    {displaySprintName(sprint)}
+                  </span>
                   {sprint.status === "active" && (
                     <span className="text-label text-text-tertiary">Active</span>
                   )}
@@ -312,6 +314,21 @@ function DisabledItem({
       {hint && <span className="text-label text-text-muted">{hint}</span>}
     </button>
   );
+}
+
+/**
+ * Compact sidebar label: `<NN> · <name-before-em-dash>`.
+ * The full name survives in the drawer/briefing and as the hover
+ * title. Designed to let a user chain 10+ sprints without the
+ * sidebar turning into an ellipsis salad.
+ */
+function displaySprintName(sprint: SprintMeta): string {
+  const numMatch = /^sprint-(\d+)/i.exec(sprint.id);
+  const num = numMatch?.[1];
+  const emDashIdx = sprint.name.search(/\s+[—–]\s+/);
+  const label =
+    emDashIdx >= 0 ? sprint.name.slice(0, emDashIdx).trim() : sprint.name.trim();
+  return num ? `${num} · ${label}` : label;
 }
 
 function StatusDot({ status }: { status: SprintMeta["status"] }) {

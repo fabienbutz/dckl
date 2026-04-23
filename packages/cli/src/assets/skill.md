@@ -354,6 +354,12 @@ Duplication guarantees drift.
 ### Creating a sprint
 
 - 5–15 tasks. Fewer = wasted structure. More = roadmap, not sprint.
+- **`name` ≤ 30 chars, headline-style.** The sidebar truncates
+  aggressively; long names turn into ellipsis salad the moment a
+  project has > 3 sprints. The *why* belongs in `goal` + the
+  `index.md` body — do **not** stuff it into the name with an em-dash
+  clause. Good: `Kostenmodell: echte Lohngruppen`. Bad:
+  `Kostenmodell — Lohngruppen-Präzision statt 2,33-Faustformel`.
 - One-sentence `goal`. Two sentences = two sprints.
 - All tasks coherent to the theme. Off-theme → tell the user to hold
   them for a later sprint.
