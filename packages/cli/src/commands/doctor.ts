@@ -170,6 +170,25 @@ async function checkSprintsAndTasks(
     });
   }
 
+  // Flag sprint *folders* that never got an `index.md`. listSprints
+  // silently skips them, so the UI shows "No sprints yet" while the
+  // folder sits on disk — the kind of silent-drop that looked like
+  // a dckl bug the first time it happened in an external project.
+  const indexedIds = new Set(metas.map((m) => m.id));
+  for (const entry of readdirSync(sprintsDir)) {
+    if (entry.startsWith(".")) continue;
+    const dirPath = join(sprintsDir, entry);
+    if (!statSync(dirPath).isDirectory()) continue;
+    if (indexedIds.has(entry)) continue;
+    if (!existsSync(join(dirPath, "index.md"))) {
+      findings.push({
+        severity: "warn",
+        code: "sprint-missing-index",
+        message: `Sprint folder \`${entry}\` has no \`index.md\` — listSprints silently skips it, so the UI shows "No sprints yet". Create the frontmatter file or remove the folder.`,
+      });
+    }
+  }
+
   // Cross-check: task files referenced by sprints must exist, and task files
   // on disk must be referenced by exactly one sprint.
   const referencedTasks = new Set<string>();
@@ -369,9 +388,14 @@ function checkClaudeIntegration(dcklRoot: string, findings: Finding[]): void {
 
   const hooks = (settings.hooks as Record<string, unknown> | undefined)?.PostToolUse;
   const matchers = Array.isArray(hooks) ? hooks : [];
+  // Hook command changed shape over time: `pnpm dckl heartbeat …`
+  // (legacy), `dckl heartbeat …` (alias-based), `node <cli.js>
+  // heartbeat …` (absolute path — current default). Match any of
+  // them via `heartbeat` + either `dckl` or `cli.js`.
+  const HEARTBEAT_RE = /(dckl|cli\.js)\s+heartbeat\b/;
   const hasHeartbeat = matchers.some((m) => {
     const entries = (m as { hooks?: Array<{ command?: string }> }).hooks;
-    return entries?.some((h) => h.command?.includes("dckl heartbeat"));
+    return entries?.some((h) => HEARTBEAT_RE.test(h.command ?? ""));
   });
   if (!hasHeartbeat) {
     findings.push({
