@@ -26,6 +26,15 @@ export const Config = v.object({
     security_check_template: Slug,
     test_categories: v.array(v.string()),
   }),
+  // Frontend-Sitemap-Scanner overrides. Optional — auto-detection
+  // (Next.js at repo root) handles most projects; monorepos and
+  // non-standard layouts set `roots` + `page_file` explicitly.
+  pages: v.optional(
+    v.object({
+      roots: v.optional(v.array(v.string())),
+      page_file: v.optional(v.array(v.string())),
+    }),
+  ),
 });
 export type Config = v.InferOutput<typeof Config>;
 
