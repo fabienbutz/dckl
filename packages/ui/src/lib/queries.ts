@@ -14,6 +14,7 @@ const keys = {
   sprint: (id: string) => ["sprint", id] as const,
   sprintCommits: (id: string) => ["sprint-commits", id] as const,
   task: (sprintId: string, taskId: string) => ["task", sprintId, taskId] as const,
+  backlog: ["backlog"] as const,
 };
 
 export function useJourneys() {
@@ -87,6 +88,15 @@ export function useSprints() {
     queryKey: keys.sprints,
     queryFn: api.getSprints,
     select: (v) => v.data.sprints,
+  });
+}
+
+export function useBacklog() {
+  return useQuery({
+    queryKey: keys.backlog,
+    queryFn: api.getBacklog,
+    select: (v) => v.data.items,
+    staleTime: 10_000,
   });
 }
 

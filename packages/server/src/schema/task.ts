@@ -31,13 +31,16 @@ export const CLAIM_TTL_MS = 5 * 60 * 1000;
 export const TaskMeta = v.object({
   schema: v.literal(CURRENT_SCHEMA),
   id: v.pipe(v.string(), v.regex(/^[A-Z][A-Z0-9]*-\d+$/, "must be <PREFIX>-<N>")),
-  sprint_id: v.pipe(v.string(), v.regex(/^sprint-[a-z0-9-]+$/i)),
+  // Optional: tasks living in `.dckl/backlog/` have no sprint until
+  // promoted via `dckl task move <id> <sprint-id>`. All in-sprint
+  // tasks retain the field — fully backwards-compatible.
+  sprint_id: v.optional(v.pipe(v.string(), v.regex(/^sprint-[a-z0-9-]+$/i))),
   title: v.pipe(v.string(), v.minLength(1)),
   type: TaskType,
   status: TaskStatus,
-  security_checks: v.array(ReminderInstance),
-  test_criteria: v.array(TestCriterion),
-  corrections: v.array(Correction),
+  security_checks: v.optional(v.array(ReminderInstance), []),
+  test_criteria: v.optional(v.array(TestCriterion), []),
+  corrections: v.optional(v.array(Correction), []),
   // Chunk-shaped hints for AI execution — all optional, all additive. See
   // the SKILL.md "Creating a chunk" section for filling-in rules.
   context_files: v.optional(v.array(v.string())),

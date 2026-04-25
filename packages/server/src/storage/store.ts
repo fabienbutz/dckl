@@ -22,7 +22,14 @@ import { etag } from "./etag.js";
 import { writeAtomic } from "./fs-adapter.js";
 import { parseJourney, stringifyJourney } from "./journey-io.js";
 import { parseSprint, parseTask, stringifyTask } from "./markdown.js";
-import { type DcklPaths, dcklPaths, sprintDir, sprintIndexFile, taskFile } from "./paths.js";
+import {
+  backlogTaskFile,
+  type DcklPaths,
+  dcklPaths,
+  sprintDir,
+  sprintIndexFile,
+  taskFile,
+} from "./paths.js";
 import { readVisionIfPresent } from "./vision-io.js";
 
 export class StoreError extends Error {
@@ -153,6 +160,72 @@ export class Store {
       trashDir: this.paths.trash,
     });
     return { journey: next, etag: newEtag };
+  }
+
+  /**
+   * List all backlog items — tasks parked in `.dckl/backlog/` without a
+   * sprint. Sorted by `created` desc (newest first); tasks without a
+   * `created` field land last.
+   */
+  async listBacklog(): Promise<Task[]> {
+    if (!existsSync(this.paths.backlog)) return [];
+    const entries = await readdir(this.paths.backlog);
+    const items: Task[] = [];
+    for (const entry of entries) {
+      if (!entry.endsWith(".md") || entry.startsWith(".")) continue;
+      try {
+        const file = backlogTaskFile(this.paths, entry.replace(/\.md$/, ""));
+        const content = await readFile(file, "utf8");
+        items.push(parseTask(content));
+      } catch {
+        // Skip malformed backlog files — surfaced via doctor later.
+      }
+    }
+    items.sort((a, b) => {
+      const ax = a.meta.created ?? "";
+      const bx = b.meta.created ?? "";
+      return bx.localeCompare(ax);
+    });
+    return items;
+  }
+
+  /** Read a single backlog item by id. */
+  async getBacklogTask(taskId: string): Promise<{ task: Task; etag: string }> {
+    const file = backlogTaskFile(this.paths, taskId);
+    if (!existsSync(file)) {
+      throw new StoreError("NOT_FOUND", `backlog task ${taskId} not found`);
+    }
+    const content = await readFile(file, "utf8");
+    return { task: parseTask(content), etag: etag(content) };
+  }
+
+  /**
+   * Highest task-id number in use across every sprint plus the backlog.
+   * Returns the next free integer; `${prefix}-${nextTaskIdNumber()}`
+   * gives the next id (zero-padded by callers).
+   */
+  async nextTaskIdNumber(): Promise<number> {
+    let max = 0;
+    const taskIdRe = /^[A-Z][A-Z0-9]*-(\d+)\.md$/;
+    if (existsSync(this.paths.sprints)) {
+      const sprintEntries = await readdir(this.paths.sprints);
+      for (const sprint of sprintEntries) {
+        if (sprint.startsWith(".")) continue;
+        const tasksDir = join(this.paths.sprints, sprint, "tasks");
+        if (!existsSync(tasksDir)) continue;
+        for (const file of await readdir(tasksDir)) {
+          const m = taskIdRe.exec(file);
+          if (m?.[1]) max = Math.max(max, Number.parseInt(m[1], 10));
+        }
+      }
+    }
+    if (existsSync(this.paths.backlog)) {
+      for (const file of await readdir(this.paths.backlog)) {
+        const m = taskIdRe.exec(file);
+        if (m?.[1]) max = Math.max(max, Number.parseInt(m[1], 10));
+      }
+    }
+    return max + 1;
   }
 
   async listSprints(): Promise<SprintMeta[]> {

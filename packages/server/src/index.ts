@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
 import { EventBus } from "./events/bus.js";
+import { backlogRoutes } from "./routes/backlog.js";
 import { changelogRoutes } from "./routes/changelog.js";
 import { commitsRoutes } from "./routes/commits.js";
 import { configRoutes } from "./routes/config.js";
@@ -84,6 +85,7 @@ export function createApp(options: AppOptions = {}): AppHandle {
     app.route("/api/journeys", journeyRoutes(store));
     app.route("/api/stack", stackRoutes(store, { noMemory: options.noMemory }));
     app.route("/api/pages", pagesRoutes(store));
+    app.route("/api/backlog", backlogRoutes(store));
   } else {
     const missing = (c: { json: (body: unknown, status: number) => Response }) =>
       c.json({ error: "no .dckl/ found — run `dckl init`" }, 503);
@@ -97,6 +99,7 @@ export function createApp(options: AppOptions = {}): AppHandle {
     app.all("/api/stack", missing);
     app.all("/api/stack/*", missing);
     app.all("/api/pages", missing);
+    app.all("/api/backlog", missing);
   }
 
   if (options.uiDir && existsSync(options.uiDir)) {

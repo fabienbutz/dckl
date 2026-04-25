@@ -15,7 +15,8 @@ export type Route =
   | { kind: "journey"; journeyId: string }
   | { kind: "pages" }
   | { kind: "stack"; path: string | null }
-  | { kind: "changelog" };
+  | { kind: "changelog" }
+  | { kind: "backlog" };
 
 export function parseHash(hash: string): Route {
   const raw = hash.replace(/^#\/?/, "").replace(/\/+$/, "");
@@ -52,6 +53,7 @@ export function parseHash(hash: string): Route {
     return { kind: "stack", path };
   }
   if (parts[0] === "changelog") return { kind: "changelog" };
+  if (parts[0] === "backlog") return { kind: "backlog" };
   return { kind: "home" };
 }
 
@@ -79,6 +81,8 @@ export function toHash(route: Route): string {
         : "#/stack";
     case "changelog":
       return "#/changelog";
+    case "backlog":
+      return "#/backlog";
   }
 }
 

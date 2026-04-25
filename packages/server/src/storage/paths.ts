@@ -24,6 +24,7 @@ export type DcklPaths = {
   config: string;
   templates: string;
   sprints: string;
+  backlog: string;
   trash: string;
   ignoreFile: string;
   portFile: string;
@@ -36,6 +37,7 @@ export function dcklPaths(root: string): DcklPaths {
     config: resolve(root, "config.yaml"),
     templates: resolve(root, "templates"),
     sprints: resolve(root, "sprints"),
+    backlog: resolve(root, "backlog"),
     trash: resolve(root, ".trash"),
     ignoreFile: resolve(root, ".dcklignore"),
     portFile: resolve(root, ".port"),
@@ -53,4 +55,8 @@ export function sprintIndexFile(paths: DcklPaths, sprintId: string): string {
 
 export function taskFile(paths: DcklPaths, sprintId: string, taskId: string): string {
   return resolve(sprintDir(paths, sprintId), "tasks", `${taskId}.md`);
+}
+
+export function backlogTaskFile(paths: DcklPaths, taskId: string): string {
+  return resolve(paths.backlog, `${taskId}.md`);
 }

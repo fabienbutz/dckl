@@ -1,10 +1,10 @@
 import type { Config } from "@dckl/server/schema";
 import { motion } from "framer-motion";
-import { History, Layers, Map, Route as RouteIcon, Workflow } from "lucide-react";
+import { History, Inbox, Layers, Map, Route as RouteIcon, Workflow } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { SprintListItem } from "../lib/api.js";
 import { cn } from "../lib/cn.js";
-import { useJourneys } from "../lib/queries.js";
+import { useBacklog, useJourneys } from "../lib/queries.js";
 import type { Route } from "../lib/use-route.js";
 import { navigate } from "../lib/use-route.js";
 
@@ -17,6 +17,7 @@ type Props = {
 
 export function Sidebar({ config, sprints, route, collapsed }: Props) {
   const journeys = useJourneys();
+  const backlog = useBacklog();
   const projectName = config?.project.name ?? "dckl";
 
   const liveSprints = sprints.filter(
@@ -26,6 +27,7 @@ export function Sidebar({ config, sprints, route, collapsed }: Props) {
     (n, j) => n + j.steps.filter((s) => s.status === "broken").length,
     0,
   );
+  const backlogCount = backlog.data?.length ?? 0;
 
   return (
     <motion.aside
@@ -55,6 +57,13 @@ export function Sidebar({ config, sprints, route, collapsed }: Props) {
             badge={brokenJourneys > 0 ? `!${brokenJourneys}` : null}
             active={route.kind === "journeys-list" || route.kind === "journey"}
             onClick={() => navigate({ kind: "journeys-list" })}
+          />
+          <NavItem
+            icon={Inbox}
+            label="Backlog"
+            badge={backlogCount > 0 ? String(backlogCount) : null}
+            active={route.kind === "backlog"}
+            onClick={() => navigate({ kind: "backlog" })}
           />
           <NavItem
             icon={Map}

@@ -6,6 +6,7 @@ import { runInit } from "./commands/init.js";
 import { runServe } from "./commands/serve.js";
 import { runDoctor } from "./commands/doctor.js";
 import { runExport } from "./commands/export.js";
+import { runBacklogAdd, runTaskMove } from "./commands/backlog.js";
 import { runJourneyList, runJourneyNew } from "./commands/journey.js";
 import { runPages } from "./commands/pages.js";
 import { runSprintClose } from "./commands/sprint.js";
@@ -97,6 +98,30 @@ taskCmd
   .option("--force", "Close even if reminders (security_checks) are still open")
   .action(async (id: string, opts: { force?: boolean }) => {
     await runTaskClose(id, opts);
+  });
+
+taskCmd
+  .command("move <id> <sprint-id>")
+  .description("Move a backlog task into the given sprint (sets sprint_id, updates index)")
+  .action(async (id: string, sprintId: string) => {
+    await runTaskMove(id, sprintId);
+  });
+
+const backlogCmd = program
+  .command("backlog")
+  .description("Backlog operations (parking lot for tasks without a sprint)");
+
+backlogCmd
+  .command("add <title>")
+  .description("Create a new backlog task with auto-numbered id")
+  .option("--type <type>", "feature | bug | chore | refactor (default: feature)")
+  .action(async (title: string, opts: { type?: string }) => {
+    const allowed = ["feature", "bug", "chore", "refactor"] as const;
+    type AllowedType = (typeof allowed)[number];
+    const type = (allowed as readonly string[]).includes(opts.type ?? "")
+      ? (opts.type as AllowedType)
+      : undefined;
+    await runBacklogAdd(title, { type });
   });
 
 program

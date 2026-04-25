@@ -147,6 +147,7 @@ export const api = {
       entries: Array<{ route: string; file: string }>;
       scannedRoots: string[];
     }>("/api/pages"),
+  getBacklog: () => request<{ items: Task[] }>("/api/backlog"),
   getTask: (sprintId: string, taskId: string) =>
     request<Task>(
       `/api/sprints/${encodeURIComponent(sprintId)}/tasks/${encodeURIComponent(taskId)}`,

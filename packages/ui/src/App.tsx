@@ -5,6 +5,7 @@ import { useEffect, useMemo } from "react";
 import { ChangelogView } from "./components/ChangelogView.js";
 import { EmptyState } from "./components/EmptyState.js";
 import { ErrorBoundary } from "./components/ErrorBoundary.js";
+import { BacklogView } from "./components/BacklogView.js";
 import { JourneysListView } from "./components/JourneysListView.js";
 import { JourneyView } from "./components/JourneyView.js";
 import { PagesView } from "./components/PagesView.js";
@@ -138,6 +139,11 @@ function AppInner() {
             />
           ) : route.kind === "journeys-list" ? (
             <JourneysListView
+              sidebarCollapsed={sidebarCollapsed}
+              onToggleSidebar={toggleSidebar}
+            />
+          ) : route.kind === "backlog" ? (
+            <BacklogView
               sidebarCollapsed={sidebarCollapsed}
               onToggleSidebar={toggleSidebar}
             />
