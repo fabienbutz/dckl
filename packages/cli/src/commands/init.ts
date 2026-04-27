@@ -166,6 +166,7 @@ async function ensureLabels(
   let existed = 0;
   for (const name of DCKL_LABELS) {
     const def = LABEL_DEFS[name];
+    if (!def) continue;
     try {
       await client.rest.issues.createLabel({
         owner: repo.owner,
