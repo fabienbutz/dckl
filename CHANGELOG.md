@@ -9,27 +9,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Pivot to gh-pure MCP + Skill** — `dckl` is being rewritten as a thin
-  layer over GitHub Issues, replacing the local CLI/UI/server stack.
-  Source of truth moves from `.dckl/` Markdown files to GitHub Issues +
-  Milestones + Labels. Agent layer is temporal-sterile (date fields are
-  filtered out before reaching tools). See `README.md` for the new
-  positioning and `TODOS.md` for the v0.1 roadmap.
-- Distribution target: npm package, installed via
-  `npx -y @scope/dckl-mcp init`.
+- **Pivot to gh-pure MCP + Skill** — `dckl` rewritten as a thin layer
+  over GitHub Issues. Source of truth moved from `.dckl/` Markdown
+  files to GitHub Issues + Milestones + Labels. Agent layer is
+  temporal-sterile (date fields are filtered out before reaching
+  tools). See `README.md` for positioning, `TODOS.md` for the
+  remaining v0.1 roadmap.
+- Distribution target: npm packages, installed via
+  `npx -y @dckl/mcp init`.
 
 ### Added
 
-- `TODOS.md` with the v0.1 roadmap and locked-in decisions.
-- New `README.md` manifest: *"Project management for solo devs working
+- `TODOS.md` with the v0.1 roadmap.
+- `README.md` manifest: *"Project management for solo devs working
   with AI agents. No calendar. No sidecar."*
+- `@dckl/core` package: Octokit wrapper, defensive body parser,
+  time-strip filter, optimistic concurrency, ETag cache, 17
+  high-level operations.
+- `@dckl/mcp` package: STDIO MCP server with 17 tools and 2
+  auto-loaded resources.
+- `@dckl/cli` (rewritten): three commands (`init`, `status`,
+  `doctor`) wrapping `@dckl/core`.
+- `.github/ISSUE_TEMPLATE/dckl-task.md` — Markdown template with the
+  body schema.
+- `.github/workflows/ci.yml` — lint, typecheck, test, build on PR/push.
+- `.github/workflows/publish.yml` — `pnpm publish -r` on `v*` tags.
 
-### Deprecated
+### Removed
 
-- `packages/server/` (HTTP + SSE) — to be removed before v0.1.0.
-- `packages/ui/` (Vue/React frontend) — to be removed before v0.1.0.
-- `.dckl/` local sprint/task state — to be removed before v0.1.0; no
-  migration path is planned (`dckl migrate` is out of scope for v0.1).
+- `packages/server/` (HTTP + SSE) — replaced by the MCP layer.
+- `packages/ui/` (Vue/React frontend) — replaced by the agent surface.
+- `.dckl/` local sprint/task state — GitHub Issues take its place. No
+  migration path is provided (`dckl migrate` is parked indefinitely).
 
 ## [0.0.x] — pre-pivot
 

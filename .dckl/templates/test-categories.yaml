@@ -1,9 +1,0 @@
-categories:
-  - id: unit
-    label: "Unit tests"
-  - id: integration
-    label: "Integration tests"
-  - id: manual
-    label: "Manual verification"
-  - id: security
-    label: "Security / threat modelling"

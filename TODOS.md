@@ -124,16 +124,18 @@
 - [x] `init.ts` updated to look for both `.md` and `.yml` template variants.
 - [x] CLI rebuild verified: `dist/assets/skill.md` + `dist/assets/templates/dckl-task.md` both bundled.
 
-## Phase 6 — Release Pipeline (Week 7)
+## Phase 6 — Release Pipeline (DONE)
 
-- [ ] `.github/workflows/ci.yml` (lint, test, typecheck on PR).
-- [ ] `.github/workflows/publish.yml` (npm publish on tag matching `v*`).
-- [ ] Smoke-test repo: `@deckel/dckl-smoke-test` with seeded issues for end-to-end verification.
-- [ ] **DESTRUCTIVE — confirm with user before executing:**
-  - Delete `packages/server/`.
-  - Delete `packages/ui/`.
-  - Delete `.dckl/`.
-- [ ] Update root `package.json` workspaces, scripts.
+- [x] `.github/workflows/ci.yml` — lint, typecheck (`pnpm -r`), test (`pnpm -r`), build (`pnpm -r`) on PR + push to main. Node 20, pnpm 10.24.0.
+- [x] `.github/workflows/publish.yml` — on `v*` tag: install, typecheck, test, build, then `pnpm -r publish --access public --no-git-checks` with `NODE_AUTH_TOKEN` from `NPM_TOKEN` secret. Publishes `@dckl/core`, `@dckl/mcp`, `@dckl/cli`.
+- [x] **Destructive deletes (executed with user authorization):**
+  - `packages/server/` — gone.
+  - `packages/ui/` — gone.
+  - `.dckl/` — gone.
+  - `.gitignore` patterns for the deleted paths cleaned up.
+- [x] `pnpm install` refreshed; lockfile dropped 221 packages from the workspace.
+- [x] Post-deletion verification: 3 packages typecheck, 96 tests still pass (89 core + 7 mcp + 0 cli with passWithNoTests), all builds green.
+- [ ] Smoke-test repo: `@deckel/dckl-smoke-test` — separate repo with seeded issues. Created manually before tagging v0.1.0; not in this monorepo.
 
 ## Phase 7 — Beta + Release (Week 8)
 
