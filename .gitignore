@@ -4,6 +4,9 @@ coverage
 .DS_Store
 *.log
 
+# Project-local Claude Code MCP config (machine-specific path until @dckl/mcp publishes to npm)
+.mcp.json
+
 # Editor
 .vscode/*
 !.vscode/settings.json
