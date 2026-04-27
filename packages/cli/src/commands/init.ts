@@ -1,181 +1,243 @@
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { basename, join, resolve } from "node:path";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFile, mkdir } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
 import { stdin as input, stdout as output } from "node:process";
 import { createInterface } from "node:readline/promises";
+import { fileURLToPath } from "node:url";
 import {
-  renderStarterSprint,
-  renderStarterTask01,
-  renderStarterTask02,
-  renderStarterTask03,
-} from "../starter-templates.js";
-import { installClaudeIntegration } from "./claude-integration.js";
+  DCKL_LABELS,
+  type DcklOctokit,
+  Runtime,
+  type RepoCoordinates,
+} from "@dckl/core";
 
-export type InitOptions = {
-  name?: string;
-  prefix?: string;
-  yes?: boolean;
-  cwd?: string;
-  /** Skip the five-minute welcome sprint. Default: include it. */
-  noDemo?: boolean;
-};
-
-const PREFIX_REGEX = /^[A-Z][A-Z0-9]*$/;
-
-export async function runInit(options: InitOptions = {}): Promise<void> {
-  const cwd = options.cwd ?? process.cwd();
-  const dcklDir = resolve(cwd, ".dckl");
-
-  if (existsSync(dcklDir)) {
-    console.error(`[dckl init] .dckl/ already exists at ${dcklDir}`);
-    console.error("              Refusing to overwrite. Remove it first if you want to re-init.");
-    process.exitCode = 1;
-    return;
-  }
-
-  const defaultName = basename(resolve(cwd));
-  const { name, prefix } = await resolveAnswers(options, defaultName);
-
-  scaffold(dcklDir, { name, prefix });
-  if (!options.noDemo) {
-    scaffoldWelcomeSprint(dcklDir, prefix);
-  }
-  installClaudeIntegration(cwd);
-
-  console.log(`[dckl init] Scaffolded ${dcklDir}`);
-  console.log("              + CLAUDE.md managed block installed");
-  console.log("              + .claude/skills/dckl/SKILL.md installed");
-  console.log("              + .claude/settings.json heartbeat hook installed");
-  if (!options.noDemo) {
-    console.log("              + welcome sprint (3 teaching tasks) — delete anytime");
-  }
-  console.log("              Next: pnpm dckl (or npx @dckl/cli serve)");
+export interface InitOptions {
+  yes: boolean;
+  printOnly: boolean;
+  updateSkill: boolean;
 }
 
-async function resolveAnswers(
-  options: InitOptions,
-  defaultName: string,
-): Promise<{ name: string; prefix: string }> {
-  if (options.yes || (options.name && options.prefix)) {
-    const prefix = (options.prefix ?? "TSK").toUpperCase();
-    validatePrefix(prefix);
-    return { name: options.name ?? defaultName, prefix };
-  }
+const MCP_SNIPPET = {
+  command: "npx",
+  args: ["-y", "@dckl/mcp@latest"],
+};
 
+const LABEL_DEFS: Record<
+  (typeof DCKL_LABELS)[number],
+  { color: string; description: string }
+> = {
+  "status:todo": { color: "ededed", description: "dckl: not started" },
+  "status:in-progress": { color: "fbca04", description: "dckl: actively claimed" },
+  "status:review": { color: "0e8a16", description: "dckl: needs review" },
+  "status:done": { color: "5319e7", description: "dckl: shipped" },
+  "priority:must": { color: "b60205", description: "dckl: must ship this sprint" },
+  "priority:should": { color: "d93f0b", description: "dckl: should ship if time" },
+  "priority:could": { color: "1d76db", description: "dckl: nice to have" },
+  "type:feat": { color: "0e8a16", description: "dckl: new feature" },
+  "type:bug": { color: "d73a4a", description: "dckl: bug fix" },
+  "type:chore": { color: "cfd3d7", description: "dckl: maintenance" },
+  "type:refactor": { color: "5319e7", description: "dckl: refactor" },
+};
+
+function log(line: string): void {
+  process.stdout.write(`${line}\n`);
+}
+
+async function confirm(question: string, opts: InitOptions, def = true): Promise<boolean> {
+  if (opts.yes) return true;
   const rl = createInterface({ input, output });
   try {
-    let name = options.name;
-    if (!name) {
-      const answer = (await rl.question(`Project name [${defaultName}]: `)).trim();
-      name = answer || defaultName;
-    }
-
-    let prefix = options.prefix;
-    if (!prefix) {
-      const answer = (await rl.question("Task-ID prefix [TSK]: ")).trim();
-      prefix = (answer || "TSK").toUpperCase();
-    }
-    validatePrefix(prefix);
-    return { name, prefix };
+    const ans = await rl.question(`${question} [${def ? "Y/n" : "y/N"}] `);
+    const trimmed = ans.trim();
+    if (!trimmed) return def;
+    return /^y(es)?$/i.test(trimmed);
   } finally {
     rl.close();
   }
 }
 
-function validatePrefix(prefix: string): void {
-  if (!PREFIX_REGEX.test(prefix)) {
-    throw new Error(
-      `Invalid prefix "${prefix}" — must be uppercase alphanumeric starting with a letter (e.g. TSK, DCK, ENG).`,
-    );
+function assetPath(...parts: string[]): string {
+  return fileURLToPath(new URL(`./assets/${parts.join("/")}`, import.meta.url));
+}
+
+function readJsonSafe(path: string): unknown {
+  try {
+    return JSON.parse(readFileSync(path, "utf-8"));
+  } catch {
+    return null;
   }
-  if (prefix.length > 8) {
-    throw new Error(`Prefix "${prefix}" is too long (max 8 characters).`);
+}
+
+interface McpJson {
+  mcpServers?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+async function patchMcpJson(opts: InitOptions): Promise<void> {
+  const path = resolve(process.cwd(), ".mcp.json");
+  const snippet = { mcpServers: { dckl: MCP_SNIPPET } };
+
+  if (opts.printOnly) {
+    log("\nAdd this to your .mcp.json:");
+    log(JSON.stringify(snippet, null, 2));
+    return;
+  }
+
+  const existing = readJsonSafe(path) as McpJson | null;
+  if (!existing) {
+    if (await confirm("Create .mcp.json with the dckl entry?", opts)) {
+      writeFileSync(path, `${JSON.stringify(snippet, null, 2)}\n`, "utf-8");
+      log(`✓ wrote ${path}`);
+    } else {
+      log("- skipped .mcp.json");
+    }
+    return;
+  }
+
+  const servers = (existing.mcpServers ?? {}) as Record<string, unknown>;
+  if (servers.dckl) {
+    if (
+      !(await confirm(
+        "An existing .mcp.json already has a 'dckl' entry. Overwrite?",
+        opts,
+        false,
+      ))
+    ) {
+      log("- kept existing .mcp.json dckl entry");
+      return;
+    }
+  }
+  const merged: McpJson = {
+    ...existing,
+    mcpServers: { ...servers, dckl: MCP_SNIPPET },
+  };
+  writeFileSync(path, `${JSON.stringify(merged, null, 2)}\n`, "utf-8");
+  log(`✓ updated ${path}`);
+}
+
+async function copySkill(opts: InitOptions): Promise<void> {
+  const src = assetPath("skill.md");
+  const dest = resolve(process.cwd(), ".claude", "skills", "dckl", "SKILL.md");
+
+  if (!existsSync(src)) {
+    log(`- skill asset missing in this build (${src}); skipping`);
+    return;
+  }
+
+  const exists = existsSync(dest);
+  const promptText = exists
+    ? "Overwrite .claude/skills/dckl/SKILL.md with the bundled version?"
+    : "Install dckl skill at .claude/skills/dckl/SKILL.md?";
+  if (!(await confirm(promptText, opts, true))) {
+    log(`- skipped skill install (${dest})`);
+    return;
+  }
+  await mkdir(dirname(dest), { recursive: true });
+  await copyFile(src, dest);
+  log(`✓ ${exists ? "updated" : "installed"} ${dest}`);
+}
+
+async function copyTemplates(opts: InitOptions): Promise<void> {
+  const tmplDir = assetPath("templates");
+  const candidates = [
+    `${tmplDir}/dckl-task.md`,
+    `${tmplDir}/dckl-task.yml`,
+    `${tmplDir}/dckl-correction.md`,
+    `${tmplDir}/dckl-correction.yml`,
+  ].filter((p) => existsSync(p));
+
+  if (candidates.length === 0) {
+    log("- no issue templates bundled in this build; skipping");
+    return;
+  }
+
+  if (!(await confirm("Install dckl issue templates into .github/ISSUE_TEMPLATE/?", opts))) {
+    log("- skipped issue templates");
+    return;
+  }
+  const targetDir = resolve(process.cwd(), ".github", "ISSUE_TEMPLATE");
+  await mkdir(targetDir, { recursive: true });
+  for (const src of candidates) {
+    const name = src.split("/").pop() ?? "unknown";
+    const dest = `${targetDir}/${name}`;
+    await copyFile(src, dest);
+    log(`✓ wrote ${dest}`);
   }
 }
 
-type ScaffoldOptions = { name: string; prefix: string };
-
-function scaffold(dcklDir: string, { name, prefix }: ScaffoldOptions): void {
-  mkdirSync(dcklDir, { recursive: true });
-  mkdirSync(join(dcklDir, "sprints"), { recursive: true });
-  mkdirSync(join(dcklDir, "templates"), { recursive: true });
-  mkdirSync(join(dcklDir, ".trash"), { recursive: true });
-
-  const today = new Date().toISOString().slice(0, 10);
-  writeFileSync(join(dcklDir, "config.yaml"), renderConfigYaml(name, prefix, today));
-  writeFileSync(join(dcklDir, "templates", "security-checks.yaml"), DEFAULT_SECURITY_TEMPLATE);
-  writeFileSync(join(dcklDir, "templates", "test-categories.yaml"), DEFAULT_TEST_CATEGORIES);
-  writeFileSync(join(dcklDir, ".dcklignore"), DEFAULT_IGNORE);
-  writeFileSync(join(dcklDir, ".gitignore"), ".trash/\n.port\n.active-task\n");
+async function ensureLabels(
+  client: DcklOctokit,
+  repo: RepoCoordinates,
+  opts: InitOptions,
+): Promise<void> {
+  if (
+    !(await confirm(
+      `Create the 11 dckl labels in ${repo.owner}/${repo.repo}?`,
+      opts,
+    ))
+  ) {
+    log("- skipped label creation");
+    return;
+  }
+  let created = 0;
+  let existed = 0;
+  for (const name of DCKL_LABELS) {
+    const def = LABEL_DEFS[name];
+    try {
+      await client.rest.issues.createLabel({
+        owner: repo.owner,
+        repo: repo.repo,
+        name,
+        color: def.color,
+        description: def.description,
+      });
+      created++;
+    } catch (err: unknown) {
+      const status =
+        err && typeof err === "object" && "status" in err
+          ? (err as { status: number }).status
+          : 0;
+      if (status === 422) {
+        existed++;
+        continue;
+      }
+      log(`! failed to create label "${name}": ${(err as Error).message ?? "unknown"}`);
+    }
+  }
+  log(`✓ labels: ${created} created, ${existed} already existed`);
 }
 
-function scaffoldWelcomeSprint(dcklDir: string, prefix: string): void {
-  const sprintDir = join(dcklDir, "sprints", "sprint-00-welcome");
-  const tasksDir = join(sprintDir, "tasks");
-  mkdirSync(tasksDir, { recursive: true });
+export async function runInit(opts: InitOptions): Promise<void> {
+  log("dckl init — wiring this repo for the temporal-sterile MCP layer.\n");
 
-  writeFileSync(join(sprintDir, "index.md"), renderStarterSprint(prefix));
-  writeFileSync(join(tasksDir, `${prefix}-01.md`), renderStarterTask01(prefix));
-  writeFileSync(join(tasksDir, `${prefix}-02.md`), renderStarterTask02(prefix));
-  writeFileSync(join(tasksDir, `${prefix}-03.md`), renderStarterTask03(prefix));
+  if (opts.updateSkill) {
+    await copySkill({ ...opts, yes: true });
+    return;
+  }
+
+  if (opts.printOnly) {
+    await patchMcpJson(opts);
+    log("\n(--print-only: no files written, no labels created)");
+    return;
+  }
+
+  // .mcp.json — no GitHub call needed
+  await patchMcpJson(opts);
+
+  // Skill + templates — local file copies only
+  await copySkill(opts);
+  await copyTemplates(opts);
+
+  // Labels — needs gh auth + repo detection
+  try {
+    const runtime = new Runtime();
+    const [client, repo] = await Promise.all([runtime.getClient(), runtime.getRepo()]);
+    await ensureLabels(client, repo, opts);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    log(`! label step skipped: ${message}`);
+    log("  (set GH_TOKEN or run \`gh auth login\`, then \`dckl init --yes\`)");
+  }
+
+  log("\ndone. Restart Claude Code, then ask: \"dckl status?\"");
 }
-
-function renderConfigYaml(name: string, prefix: string, created: string): string {
-  return `schema: 1
-project:
-  name: ${JSON.stringify(name)}
-  created: ${created}
-  version: 1
-ui:
-  port: 4321
-  theme: dark
-task_id_prefix: ${prefix}
-defaults:
-  security_check_template: default
-  test_categories:
-    - unit
-    - integration
-    - manual
-    - security
-`;
-}
-
-const DEFAULT_SECURITY_TEMPLATE = `# Reminders surfaced as acceptance criteria on each task. These are prompts
-# for the implementer — checking them does NOT prove compliance, it only
-# records that the implementer considered them.
-templates:
-  default:
-    - id: gdpr-storage
-      label: "DSGVO-conforming storage of personal data"
-      category: gdpr
-    - id: 2fa-available
-      label: "2FA available on authenticated routes"
-      category: auth
-    - id: passkey-support
-      label: "Passkey / WebAuthn Level 2 supported where relevant"
-      category: auth
-    - id: rate-limiting
-      label: "Rate-limiting on sensitive endpoints"
-      category: hardening
-    - id: input-validation
-      label: "Server-side input validation (schema + size limits)"
-      category: hardening
-    - id: secrets-not-committed
-      label: "No secrets committed to the repo"
-      category: ops
-`;
-
-const DEFAULT_TEST_CATEGORIES = `categories:
-  - id: unit
-    label: "Unit tests"
-  - id: integration
-    label: "Integration tests"
-  - id: manual
-    label: "Manual verification"
-  - id: security
-    label: "Security / threat modelling"
-`;
-
-const DEFAULT_IGNORE = `# Additional glob patterns to exclude from dckl's inventory scan.
-# Built-ins (node_modules, .git, dist, build, coverage, .next, .turbo, .cache)
-# are always ignored.
-`;

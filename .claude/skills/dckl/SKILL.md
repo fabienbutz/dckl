@@ -1,59 +1,102 @@
 ---
 name: dckl
 description: |
-  dckl tracks sprints and tasks ("chunks") locally under .dckl/.
-  Activate this skill whenever the user:
-    - names a task ID matching <UPPERCASE>-<DIGITS> (e.g. TSK-01, DCK-12),
-    - says "continue the sprint", "next task", "keep working", "what should
-      I do next",
+  dckl is a discipline layer over GitHub Issues for solo devs working
+  with AI agents. No calendar, no sidecar — issues are the source of
+  truth. Activate this skill whenever the user:
+    - names a GitHub issue number (#42, #DCK-12, "issue 5"),
+    - says "continue", "next task", "what's next", "session resume",
     - asks to plan, structure, chunk, or scope new work,
     - asks to create a task, sprint, or vision entry,
     - asks about project status, progress, or what is blocked,
     - asks for a commit message, PR description, or changelog entry,
-    - begins implementation on code that may belong to a dckl-tracked task,
-    - asks "what does this codebase do" or "where do I start".
-  Also activate BEFORE any Write/Edit/Bash on a file in a repo that has a
-  .dckl/ directory, to check whether that file is listed in any task's
-  context_files.
+    - begins implementation on code that may belong to a tracked task.
+  Also activate BEFORE any Write/Edit/Bash on a file in a repo with the
+  dckl MCP installed, to check whether that file is listed under
+  "## Context" of an open issue.
 ---
 
 # dckl Skill
 
 ## Authority
 
-If this skill disagrees with the CLAUDE.md managed block, this skill wins —
-the block is a summary primer, this file is the full specification.
+If this skill disagrees with anything in `CLAUDE.md`, this skill wins.
+The CLAUDE.md primer is a summary; this file is the full specification.
 
-## Commands
+## The "no calendar" manifesto
 
-All commands below are implemented. Each is safe to invoke directly.
+dckl agents never see dates. The `dckl_*` tool surface strips
+`created_at`, `updated_at`, `closed_at`, `due_on`, and similar fields
+from every response. That's intentional — AI velocity is too variable
+for time-based planning to be useful.
 
-```bash
-dckl                                       # default = serve; UI on :4321
-dckl status                                # vision, sprint, gaps, recent
-dckl export <TASK-ID>                      # structured prompt for this task
-dckl task claim <TASK-ID>                  # mark live-worked, amber pulse
-dckl task release <TASK-ID>                # clear the claim (status unchanged)
-dckl task close <TASK-ID> [--force]        # status=done + release claim
-dckl check <TASK-ID> <check-id>            # toggle a reminder or test check
-dckl correction add <TASK-ID> "<text>"     # log an issue mid-work
-dckl correction resolve <TASK-ID> <cid>    # mark a correction resolved
-                                                # + optional --target-sprint <slug>
-dckl sprint close <SPRINT-ID> [--force]    # archive sprint + write SUMMARY.md
-                                                # + optional --dry-run
-dckl doctor [--fix]                        # audit layout + auto-clear orphans
-dckl journey new <slug>                    # scaffold a journey
-dckl journey list                          # list journeys with step counts
-dckl vision init                           # scaffold VISION.md
-dckl stop                                  # gracefully stop the running server
-```
+When the user asks **"when is X due?"**, redirect:
+*"dckl is calendar-free. What's blocking X, and what's the priority?"*
+If they need a date for a stakeholder commitment, that lives in the
+GitHub milestone's `due_on` (set externally) or a contract — never read
+by dckl tools.
 
-`dckl heartbeat` also exists but fires automatically from the
-PostToolUse hook. **Never invoke it yourself.**
+## What dckl owns
 
-The UI exposes a Stack / Docs / Memory reader (`MarkdownReader` over
-`/api/stack/:path`) and live SSE updates for every task. Journeys are
-readable via `journey list/new`; a richer editor lands later.
+| Concept | GitHub-native representation |
+|---|---|
+| Task | Issue |
+| Status | Label: `status:todo` / `:in-progress` / `:review` / `:done` |
+| Priority | Label: `priority:must` / `:should` / `:could` |
+| Type | Label: `type:feat` / `:bug` / `:chore` / `:refactor` |
+| Sprint | Milestone (no `due_on`) |
+| Active claim | Label `status:in-progress` + assignee = current user |
+| Correction | Issue comment prefixed with `[correction]` |
+| Resolved correction | Same comment edited to start with `[resolved]` |
+| Vision | `CLAUDE.md` under `## Vision`, or pinned issue with `vision` label |
+
+There is no `.dckl/` folder. There is no local state. Everything lives
+in GitHub.
+
+---
+
+## Tools you have
+
+### Resources (auto-loaded into your context)
+
+| URI | Content | Size |
+|---|---|---|
+| `dckl://active` | Current claim — issue number, title, milestone summary, or null | ~50 tokens |
+| `dckl://status` | Active milestone + counts (todo / in-progress / review) | ~300 tokens |
+
+Read these first to orient yourself before any tool call.
+
+### Read tools
+
+| Tool | Use when |
+|---|---|
+| `dckl_session_resume` | Session start: full restore in one call (active issue + body + open corrections + unfinished checks) |
+| `dckl_status` | Wider state — active milestone + all counts |
+| `dckl_active_task` | Just the active issue with body |
+| `dckl_task_export <issue_number>` | Full single-task view: body + comments + dependency titles |
+| `dckl_sprint_view <milestone_number>` | Milestone + issue list (no bodies) |
+| `dckl_search` | Filter by status, priority, type, milestone, file in body, free text |
+| `dckl_next_up` | First unblocked todo in the active milestone |
+
+### Write tools
+
+| Tool | Effect |
+|---|---|
+| `dckl_task_claim <issue_number>` | Atomic: adds `status:in-progress` + assignee, removes `status:todo` |
+| `dckl_task_release <issue_number>` | Clears claim; issue stays open |
+| `dckl_task_close <issue_number>` | Closes issue (+ optional summary comment) |
+| `dckl_check_toggle <issue_number> <pattern>` | Toggle the first acceptance-criteria checkbox matching `pattern` |
+| `dckl_correction_add <issue_number> <text>` | Comment with `[correction]` prefix |
+| `dckl_correction_resolve <comment_id>` | Edit comment to start with `[resolved]` |
+| `dckl_sprint_close <milestone_number>` | Close milestone — refuses if any `priority:must` issue is still open |
+
+### PM tools
+
+| Tool | Effect |
+|---|---|
+| `dckl_task_create` | Create issue with schema-conforming body + dckl labels |
+| `dckl_sprint_create` | Create milestone (no `due_on`) |
+| `dckl_doctor` | Read-only audit (7 checks listed below) |
 
 ---
 
@@ -61,375 +104,278 @@ readable via `journey list/new`; a richer editor lands later.
 
 | Ask looks like | Role | Writes code? |
 |---|---|---|
-| "work on TSK-01", "fix this", "continue", "add …" | **DEV** | yes |
-| "plan", "chunk this up", "new sprint", "write a vision" | **PM** | no — only `.dckl/` edits |
-| "what's the state", "status", "what am I missing" | **REVIEWER** | no — read-only unless asked |
+| "work on #42", "fix this", "continue" | **DEV** | yes |
+| "plan", "new sprint", "chunk this up", "scope this" | **PM** | no — only issues / milestones / labels |
+| "what's the state", "status", "what's blocked" | **REVIEWER** | no — read-only unless asked |
 
-Multi-role ask → execute REVIEWER → PM → DEV in that order. Never collapse
-them; that produces shallow planning and rushed code.
+Multi-role ask → execute REVIEWER → PM → DEV in that order. Never
+collapse them; that produces shallow planning and rushed code.
 
 ---
 
 ## DEV protocol
 
-### Step 0 — Read the four signals
+### Step 0 — Read auto-loaded context
 
-Executable checks. Run exactly these before acting:
+`dckl://active` and `dckl://status` are already in your context window
+(MCP resources). Glance at them:
 
-```bash
-# Signal 1: Is there an active-task pointer?
-cat .dckl/.active-task 2>/dev/null || echo "(absent)"
+- `dckl://active` shows an issue → that's what's claimed right now.
+- `dckl://active` is `null` → user hasn't claimed anything.
 
-# Signal 2: Is the dckl server running?
-#   .port file exists AND PID alive
-[ -f .dckl/.port ] \
-  && kill -0 "$(python3 -c 'import json,sys;print(json.load(open(".dckl/.port"))["pid"])')" 2>/dev/null \
-  && echo "server up" || echo "server down"
-
-# Signal 3 & 4: Read target task frontmatter (status + claim)
-#   Replace <SPRINT> and <TASK-ID>. Frontmatter is between the first two "---".
-sed -n '/^---$/,/^---$/p' .dckl/sprints/<SPRINT>/tasks/<TASK-ID>.md
-```
-
-If Signal 2 reports "server down", tell the user: **"Start `dckl`
-in another terminal, then retry."** Do not proceed with writes — the
-amber-pulse indicator will be stale and the claim won't stick.
+Tool calls follow only when you need more than these resources can
+tell you.
 
 ### Step 1 — Decide what to work on
 
 ```
-Has the user named a task ID?
-├─ YES → use it (jump to Step 2)
-└─ NO  → find the active sprint:
-          grep -l "^status: active$" .dckl/sprints/*/index.md
-         read it, list its task_ids, SUGGEST the first in_progress or todo,
-         then ASK the user to confirm. Do not auto-pick.
+User named an issue number?
+├─ YES → use it; jump to Step 2.
+└─ NO  → call `dckl_next_up`. Surface the suggestion.
+         ASK the user to confirm. Do not auto-pick.
 ```
 
-**Task-ID padding:** if the user said `TSK-1` but files are `TSK-01.md`,
-resolve with:
-```bash
-find .dckl/sprints -type f -name "*<ID>*.md"
-```
-Use the closest match; if ambiguous, list candidates and ask.
+If the user said "continue" or "session resume" without a number, call
+`dckl_session_resume` first — it returns the active issue + body +
+unfinished checks in a single roundtrip.
 
-### Step 2 — Check ownership before claiming
+### Step 2 — Claim and check ownership
 
-```
-Read target task's claim field.
-  ├─ claim absent                         → continue to Step 3
-  ├─ claim present, heartbeat < 5 min old → STOP.
-  │                                          Report: "TSK-NN is claimed by
-  │                                          <by> (Xs ago). Wait, take
-  │                                          over, or pick another task?"
-  └─ claim present, heartbeat > 5 min old → safe to take over; continue
+`dckl_task_claim <#>` returns one of:
 
-.active-task already points at a DIFFERENT task?
-  ├─ YES → `dckl task release <OLD-ID>` first, then continue
-  └─ NO  → continue
-```
+| `reason` | What it means | What to do |
+|---|---|---|
+| `claimed` | Fresh claim; you own it. | Proceed to Step 3. |
+| `already-mine` | Already yours. | No-op; proceed. |
+| `blocked` | Someone else (named in `by`) holds it. | STOP. Ask the user: wait, take over (release theirs first), or pick another issue? |
+| `not-found` | Issue doesn't exist. | Verify the number; ask the user. |
 
-### Step 3 — Claim
+### Step 3 — Read body, set boundaries
 
-```bash
-dckl task claim <TASK-ID>
-```
+Call `dckl_task_export <#>` to get the parsed body.
+Treat the parsed sections as authoritative:
 
-- **Succeeds (exit 0):** proceed to Step 4.
-- **Fails:** stop. Tell the user the exact error. Common cause: server
-  down (Signal 2) — ask them to start `dckl`.
-
-### Step 4 — Read task, set boundaries
-
-Re-read the task frontmatter. Extract and treat as authoritative:
-
-| Field | Behaviour |
+| Section | Behaviour |
 |---|---|
-| `title`, `status`, `type` | Orients your work |
-| `security_checks` | Unchecked items = acceptance criteria |
-| `test_criteria` | Unchecked items block "done" |
-| `corrections` | Open items = known issues; resolved = history |
-| `context_files` | **Hard boundary when present and non-empty** |
-| `depends_on` | Task IDs that must be done before this one |
-| `pre_flight` | Steps to perform before writing code |
-| `related_docs` | Read these if they exist |
+| `Worum es geht` | Briefing for the task |
+| `Warum jetzt` | The why — preserve it across all decisions |
+| `Woran man merkt, dass es fertig ist` | Acceptance criteria (checkboxes); each one is a `dckl_check_toggle` candidate when satisfied |
+| `Context` | **Hard boundary** when present and non-empty |
+| `Depends on` | Issues that must close before this can ship |
+| `Out of scope` | Don't touch even if tempting |
 
-**`context_files` rule:** when present and non-empty, edits outside that
-list require either (a) asking the user first, or (b) logging a
-correction first:
+**`Context` rule.** When present and non-empty, edits outside that list
+require either:
+- (a) asking the user first, or
+- (b) logging a correction first via
+  `dckl_correction_add <#> "had to edit X because Y"`.
 
-```bash
-dckl correction add <TASK-ID> "had to edit <path> because <reason>"
-```
+When `Context` is absent or empty, scope from the title + `Worum es
+geht`. When in doubt, ask.
 
-When `context_files` is absent or empty, scope from the title + body;
-when in doubt, ask.
+### Step 4 — Implement
 
-### Step 5 — Implement
-
-- When you satisfy an acceptance criterion, **flip its check**:
-  `dckl check <TASK-ID> <check-id>`. The check ID matches an
-  entry in `security_checks` or `test_criteria`.
+- When you satisfy an acceptance criterion, flip its checkbox:
+  `dckl_check_toggle <#> "<text matching the criterion>"`. The pattern
+  is a case-insensitive substring of the criterion text.
 - When you discover a new issue mid-work, log it:
-  `dckl correction add <TASK-ID> "<one-line description>"`.
+  `dckl_correction_add <#> "<one-line description>"`.
 - **When the user redirects scope mid-work** (style tweaks, new
-  dimensions, added sub-features, "out of scope" that suddenly is
-  in), log a correction **before** executing the change — not after,
-  not at release. Shape: `correction add <ID> "<what changed> — <why>"`.
-  The *why* is the whole point: the git diff shows *what*, the
-  correction preserves *why*. This is the single most common drift
-  point — a chain of "etwas heller / noch heller / anderes padding"
-  tweaks silently reshapes the task without any record. Discipline:
-  write-then-code, not code-then-forget.
-- **Never set `status: done` yourself.** That is a user-only decision,
-  made via the UI's status-icon cycle.
+  dimensions, added sub-features, "out of scope" that suddenly is in),
+  log a correction **before** executing the change — not after, not at
+  release. Shape: `correction_add <#> "<what changed> — <why>"`. The
+  *why* is the whole point: the git diff shows *what*, the correction
+  preserves *why*. This is the single most common drift point — a
+  chain of unrecorded "etwas heller / noch heller / anderes padding"
+  tweaks silently reshapes the task. Discipline: write-then-code, not
+  code-then-forget.
+- **Never call `dckl_task_close` yourself.** That's a user-only
+  decision. Surface a recommendation; let them call it (or do it via
+  the GitHub UI).
 
-### Step 6 — Release
+### Step 5 — Release or close
 
-```bash
-dckl task release <TASK-ID>        # status unchanged, claim cleared
-dckl task close   <TASK-ID>        # status=done AND claim cleared
-dckl task close   <TASK-ID> --force # also with open reminders
+```
+dckl_task_release <#>           # status returns to neutral, claim cleared
+dckl_task_close   <#>           # status:done + closes issue (only on user approval)
+dckl_task_close   <#> --summary "<final summary>"   # adds a closing comment first
 ```
 
-**`release` is not `close`.** Release only clears the claim — status
-stays where it is (usually `in_progress`). Close atomically flips the
-task to `done` and releases in one step. If the user has authorised
-marking the task done, use `close`. Otherwise, release and let the
-user flip status in the UI.
+**`release` ≠ `close`.** Release pauses; close finalises. If the user
+hasn't authorised "done", use release.
 
-If release or close **fails** (e.g. server crashed mid-session), tell
-the user explicitly: _"Claim could not be released — when the server
-is back, run `dckl task release <TASK-ID>` manually, otherwise
-the amber-pulse will stay on."_
+If a tool call **fails** (e.g. rate limit, network), tell the user
+explicitly: *"Claim could not be released — when GitHub is back, run
+`dckl_task_release <#>` manually."*
 
 Then summarise in chat:
 
-- Files touched, tests added
-- Acceptance criteria addressed (and checked)
-- What remains open
-- Whether you recommend `done`, `review`, or keeping `in_progress`
-- Corrections you added (by ID)
-- Corrections you resolved via `correction resolve`, if any
+- Files touched, tests added.
+- Acceptance criteria addressed (and which checkboxes you toggled).
+- What remains open.
+- Whether you recommend `done`, `review`, or keeping `in-progress`.
+- Corrections you added (by comment id) and any you resolved.
 
 ---
 
-## Learned anti-patterns (Sprint-02 & Sprint-03)
+## Learned anti-patterns
 
-Concrete mistakes the tool has already absorbed the hard way:
+Concrete mistakes worth absorbing:
 
-- **Heartbeat is automatic.** The PostToolUse hook fires
-  `dckl heartbeat` on every tool use. Never invoke it manually —
-  doing so just muddies the activity log without changing anything.
-- **`release` ≠ `close`.** Releasing a claim leaves the status as
-  `in_progress`. Closing archives the work. Mixing them up leaves
-  zombies (`in_progress` forever).
-- **Corrections die only when resolved.** Adding a correction and
-  moving on leaves it open forever. Use `correction resolve <id>
-  <cid>` (with `--target-sprint` to forward) — do not silently drop.
-- **Close a sprint properly.** `sprint close <id>` writes SUMMARY.md,
-  moves the folder into `.archive/`, and clears `.active-task`.
-  Handwritten PATCH loops drift.
-- **Stale-Edit after CLI calls.** A CLI write (claim, check, close,
-  correction) mutates the task frontmatter via the server. If you
-  then `Edit` the file you Read *before* the CLI call, the Edit
-  fails with a stale-file error. Always re-Read after CLI activity
-  on the same file.
+- **Heartbeat is gone.** No PostToolUse hook is needed. The old dckl
+  required one; the gh-pure version doesn't. If you find yourself
+  reaching for it, you're using the old skill.
+- **`release` ≠ `close`.** Releasing leaves the issue open without a
+  status:* label. Closing finalises. Mixing them up creates "zombie"
+  issues — open, no claim, no clear state.
+- **Corrections die only when resolved.** Adding a correction comment
+  and moving on leaves it visibly open in `dckl_session_resume`. Use
+  `dckl_correction_resolve <comment_id>` when the issue is actually
+  resolved.
+- **Stale-Edit after MCP writes.** A tool write (claim, check-toggle,
+  correction-add) mutates the issue body or labels. If you cached the
+  body locally and try to edit it again, your view is stale. Re-fetch
+  via `dckl_task_export` after MCP write activity on the same issue.
 
 ---
 
 ## The most common failure mode
 
-User writes code without naming a task. Default starting state in most
-sessions. **Before any Write/Edit on a file you don't recognise:**
+User writes code without naming an issue. Default starting state in
+most sessions.
 
-```bash
-grep -lF "<relative-path-of-file>" .dckl/sprints/*/tasks/*.md
+**Before any Write/Edit on a file you don't recognise:**
+
+```
+dckl_search { file: "<relative-path-of-file>" }
 ```
 
-If the file appears in any task's `context_files` or body, surface it:
-"This file is referenced by TSK-NN. Should we claim it before editing?"
+If the file appears under `## Context` of any open issue, surface it:
+*"This file is referenced by issue #N. Should we claim it before
+editing?"*
 
 If no match, proceed as untracked — but say so once, so the user can
-create a task if the work is non-trivial.
+create a task with `dckl_task_create` if the work is non-trivial.
 
 ---
 
 ## PM protocol
 
-No code writes. Only `.dckl/` edits (or suggested edits for user to
-apply).
+No code writes. Only issue / milestone / label changes (or suggested
+changes for the user to apply).
 
-### Creating a chunk (task)
+### Creating a task
 
-A chunk = one focused session of work. Fits inside one human workday.
-Larger = split before writing the file.
+Use `dckl_task_create` with this argument shape:
 
-#### Frontmatter template
-
-```yaml
-schema: 1
-id: <PREFIX>-<NN>             # zero-padded to 2 digits, auto-extends at 100
-sprint_id: <sprint-nn-slug>
-title: <imperative, < 60 chars>
-type: feature | bug | chore | refactor
-status: todo                  # never start as in_progress
-context_files:
-  - path/to/file.ts           # explicit, minimal, complete
-depends_on: []                # only real blockers
-pre_flight:                   # optional pre-work steps
-  - "Read ADR-003 on auth-token storage"
-security_checks:              # id references templates/security-checks.yaml
-  - { id: rate-limiting, checked: false }
-test_criteria:                # inline label, task-specific
-  - { id: unit-happy, label: "Unit: happy path", checked: false }
-  - { id: manual-edge, label: "Manual: Firefox with hardware key", checked: false }
-corrections: []
+```
+title:               imperative, ≤ 60 chars (≤ 80 hard limit)
+type:                feat | bug | chore | refactor
+priority:            must | should | could
+milestone:           (optional) milestone number to attach to
+worum_es_geht:       2–4 sentences, briefing for a cross-functional teammate
+warum_jetzt:         2–3 sentences, vision anchor
+acceptance_criteria: array of strings, each becomes a checkbox
+context_files:       array of paths (the hard boundary)
+depends_on:          array of issue numbers
+out_of_scope:        (optional) string
 ```
 
-Note: `security_checks` entries reference labels from
-`.dckl/templates/security-checks.yaml`; only the `id` lives on the
-task. `test_criteria` entries carry an inline `label` because tests are
-task-specific.
+The tool generates a schema-conforming body and sets `status:todo` +
+`priority:<priority>` + `type:<type>` labels.
 
-#### Body template
+#### Quality gate (refuse to create until)
 
-```markdown
-## Worum es geht
-
-2–4 Sätze: Was wird gebaut. Als Briefing für einen cross-functional
-Teammate formuliert (Designer, PM, Marketer) — nicht als Implementation-
-Spec für Claude. Technische Begriffe (`file.ts`, `dckl task close`,
-`POST /api/...`) in Backticks **innerhalb** natürlicher Sprache, nicht
-als Jargon-Salat.
-
-## Warum jetzt
-
-2–3 Sätze: Welches Problem löst das, welche Vision-Ankerung. Ohne dieses
-"Warum" trifft future-you reasonable-looking aber falsche Entscheidungen.
-
-## Woran man merkt, dass es fertig ist
-
-Bullet-Liste der Abnahmekriterien. Jeder Bullet prüfbar. Präzision
-erlaubt — technische Details gehören hier rein (ETag, atomic, Exit-Code).
-
-## Out of scope              # nur wenn Scope sonst unklar ist
-- Dinge, die ein Leser reasonably dazuzählen würde, die aber bewusst
-  draußen bleiben.
-```
-
-**Language rule.** Der Body ist in der Sprache, in der der User
-kommuniziert (meist die Sprache der `VISION.md`). Identifier, Commands,
-API-Pfade, Parameter-Namen **bleiben in Originalform** (fast immer
-Englisch) — auch in deutschem/französischem/… Body. Kein
-eingedeutschtes `Atomare-Schreibeaktion` — das heißt `atomic write`.
-
-**Tone rule.** Body = Briefing für Menschen, nicht für Agenten. Wenn
-der Text nur Claude Sinn ergibt, umformulieren bis ein Nicht-Entwickler
-(Designer, PM) ihn versteht. Faustregel: Liest die erste Person, die
-nicht am Code mitschreibt, den Body und nickt → gut. Sagt sie „was
-bedeutet das?" → zu technisch.
-
-Do not repeat the task ID or title — they live in the frontmatter.
-Duplication guarantees drift.
+- [ ] Title imperative, ≤ 60 chars, would fit in a commit summary.
+- [ ] `context_files` lists every file that will be touched, no more.
+- [ ] At least one `acceptance_criteria` entry is testable (not "Done")
+- [ ] `worum_es_geht` answers what; `warum_jetzt` answers why.
+- [ ] `out_of_scope` present if scope is non-obvious.
+- [ ] Implementable in one focused session.
 
 #### Anti-patterns — recognise and refuse
 
-- Vague titles ("Fix auth", "Improve performance")
-- Empty `context_files` when files will be touched (= yolo-refactor invite)
-- Copy-pasted `security_checks` template (all 6 entries = zero curation)
-- `depends_on` as wishlist ("nice-if" not a dependency)
-- Oversized: body lists > 5 sub-tasks → split into multiple chunks
-
-#### Quality gate
-
-- [ ] Title imperative, < 60 chars, would fit in a commit summary
-- [ ] `context_files` lists every file that will be touched, no more
-- [ ] `security_checks` contains only real criteria for this chunk
-- [ ] `test_criteria` covers happy path + one failure
-- [ ] Body answers "why", not just "what"
-- [ ] "Out of scope" present if scope is non-obvious
-- [ ] Implementable in one focused session
+- Vague titles ("Fix auth", "Improve performance").
+- Empty `context_files` when files will be touched (= yolo-refactor invite).
+- `depends_on` as wishlist ("nice-if" is not a dependency).
+- More than ~5 acceptance criteria → split into multiple tasks.
+- Body longer than this skill section → split.
 
 ### Creating a sprint
 
-- 5–15 tasks. Fewer = wasted structure. More = roadmap, not sprint.
-- **`name` ≤ 30 chars, headline-style.** The sidebar truncates
-  aggressively; long names turn into ellipsis salad the moment a
-  project has > 3 sprints. The *why* belongs in `goal` + the
-  `index.md` body — do **not** stuff it into the name with an em-dash
-  clause. Good: `Kostenmodell: echte Lohngruppen`. Bad:
-  `Kostenmodell — Lohngruppen-Präzision statt 2,33-Faustformel`.
-- One-sentence `goal`. Two sentences = two sprints.
-- All tasks coherent to the theme. Off-theme → tell the user to hold
-  them for a later sprint.
-- Status transitions: `planning → active → review → done`. No skipping.
+Use `dckl_sprint_create`:
 
-**Good goals:** "Login with passkey and 2FA fallback for all users" ·
-"All write endpoints return 429 under sustained load".
-
-**Bad goals:** "Improve auth" (how?) · "Q2 work" (calendar, not theme).
-
-### Writing / updating the vision
-
-`.dckl/VISION.md` is optional but high-leverage. Shape:
-
-```yaml
----
-schema: 1
-north_star: "One sentence — the eventual state of the product"
-audience: "Who this is for, specifically"
-non_goals:
-  - "Things we deliberately don't do"
-current_phase: "slug-for-the-focus-right-now"
-updated: YYYY-MM-DD
----
-
-## Full Vision
-
-Longer prose body (optional).
+```
+name:        ≤ 30 chars, headline-style
+description: one sentence — the goal
 ```
 
-Flag to the user if `updated` is > 60 days old — stale visions mislead.
+Hard rules:
+- `due_on` is **never** set. The tool refuses to accept it.
+- Sprint = thematic clamp, not a time box. 5–15 tasks.
+- Off-theme tasks → put in the next sprint or the backlog (no milestone).
 
-### Journeys
+**Good descriptions:** "Login with passkey and 2FA fallback for all
+users." · "All write endpoints return 429 under sustained load."
 
-A journey is an ordered list of routes/steps users traverse across
-sprints. `dckl journey new <slug>` scaffolds one under
-`.dckl/journeys/<slug>.md`; `dckl journey list` prints every journey
-with done/broken step counts. Bodies are free-form Markdown with a
-`steps:` frontmatter list. The UI renders them in the left nav.
+**Bad descriptions:** "Improve auth" (how?) · "Q2 work" (calendar, not
+theme).
+
+### Updating the vision
+
+The vision lives in `CLAUDE.md` under a `## Vision` heading, or as a
+pinned issue with the `vision` label. Either is fine; there is no
+opinionated tool for it.
+
+Shape (in CLAUDE.md):
+
+```markdown
+## Vision
+
+**North star.** One sentence — the eventual state of the product.
+
+**Audience.** Who this is for, specifically.
+
+**Non-goals.** Things we deliberately don't do.
+
+**Current phase.** Slug for the focus right now.
+```
+
+If the vision hasn't been touched in a long time and seems stale, flag
+it to the user. (You can't see how long; users tell you.)
 
 ---
 
 ## REVIEWER protocol
 
-Prefer `dckl status` — it already aggregates everything:
+Default to `dckl_session_resume` for orientation, then `dckl_status`
+for the wider picture, then `dckl_doctor` if anything looks off.
 
-```bash
-dckl status             # Markdown
-dckl status --json      # machine-readable
-```
+`dckl_doctor` runs seven checks:
 
-Output includes: vision + staleness, active sprint, in-flight tasks
-(with live/idle claim state), totals (unchecked reminders + tests +
-open corrections), recent commits, orphan TODOs.
+| Code | Catches |
+|---|---|
+| `claim_no_assignee` | `status:in-progress` label without an assignee |
+| `assignee_no_status` | Assigned issue with no `status:*` label |
+| `no_milestone` | Open issue not in any milestone (= backlog) |
+| `body_schema_invalid` | Issue body missing required `## …` sections |
+| `deps_clear_but_todo` | All `Depends on` issues are closed but this is still `status:todo` |
+| `milestone_has_date` | Milestone with `due_on` set (dckl ignores it; consider clearing) |
+| `non_dckl_label` | Label that looks like `status:*` / `priority:*` / `type:*` but isn't in the dckl convention |
 
-Report to the user, structured. Suggest changes; don't make them without
-user confirmation.
+Report findings as a structured summary. Suggest changes; don't make
+them without user confirmation.
 
 ---
 
 ## Commit standards
 
-Claude Code's defaults already cover: imperative, lowercase after the
-type prefix, no AI signatures, ≤ 72-char summary. The project adds:
+Project conventions plus Claude Code defaults:
 
-- **Reference tasks in the body**, not the summary:
-  `Refs TSK-14` or `Closes TSK-14`. Never `TSK-14:` as a prefix.
-- **One task per commit** unless changes are truly inseparable.
-- Types to prefer: `feat`, `fix`, `refactor`, `chore`, `docs`, `test`,
-  `perf`. Scope optional: `feat(auth): …`.
+- Imperative, lowercase after the type prefix, no AI signatures, ≤ 72-char summary.
+- Reference issues in the body, not the summary: `Refs #42` or `Closes #42`. Never `#42:` as a prefix.
+- One issue per commit unless changes are truly inseparable.
+- Types to prefer: `feat`, `fix`, `refactor`, `chore`, `docs`, `test`, `perf`. Scope optional: `feat(auth): …`.
 
 Example (good):
 
@@ -439,11 +385,11 @@ feat(auth): add passkey registration endpoint
 Users register a WebAuthn credential at signup. TOTP fallback when no
 authenticator is available.
 
-Refs TSK-14
+Refs #14
 ```
 
 Avoid: `Update auth.ts` (vague), `WIP passkeys` (don't commit WIP),
-`TSK-14: Add passkey` (task ID doesn't belong in the summary).
+`#14: Add passkey` (issue ref doesn't belong in the summary).
 
 ---
 
@@ -451,26 +397,27 @@ Avoid: `Update auth.ts` (vague), `WIP passkeys` (don't commit WIP),
 
 | Situation | Response |
 |---|---|
-| Server down | `claim`/`release`/`heartbeat`/`check` fail. Tell user: "start `dckl` in another terminal, then retry". Don't write code without a successful claim. |
-| Task-ID padding mismatch | `find .dckl/sprints -type f -name "*<ID>*.md"`. If ambiguous, list candidates. |
-| Multi-session claim race | Two sessions claiming the SAME task = last write wins on `by`. If you see a fresh claim by another agent: release yours, ask user to coordinate. |
-| `context_files` looks incomplete | Ask first. If you must expand, add a correction explaining the reason BEFORE editing. |
-| Body contradicts frontmatter | Trust frontmatter for structured state. Trust body for rationale. Semantic conflict → stop and ask. |
-| No `.dckl/` in the repo | Offer `dckl init`. If declined, proceed untracked but warn once. |
-| User marks `done` with open criteria | Say so: "N reminders and M tests are still open. Still mark done?" Then respect the call. |
-| Release fails | Tell the user explicitly and give them the exact retry command. Don't silently move on. |
-| Grep patterns with regex metachars | Use `grep -F` for literal file-path matches. |
-| User redirects scope mid-work (style, size, new sub-feature) | Log a correction **first**, then execute. A chain of unrecorded "etwas heller / noch heller / anderes padding" tweaks becomes unreadable after one session. Why-line is mandatory; the git diff alone won't rescue you. |
+| MCP server not responding | Tool calls return `UNEXPECTED` envelopes. Suggest restarting Claude Code; verify `.mcp.json` has the dckl entry. |
+| Auth fails (`AUTH_FAILED`) | "Set `GH_TOKEN`, or run `gh auth login`, then retry." |
+| Repo not detected (`REPO_NOT_FOUND`) | "Run `dckl init` from inside the repo, or set `GH_REPO=owner/name`." |
+| Rate limit hit | Octokit retries automatically once. On persistent failure, wait — or ask the user to use a different token. |
+| Concurrent claim race | `claim` returns `blocked`. Don't override; tell the user who holds it. |
+| `dckl_check_toggle` returns `CONCURRENT_MODIFICATION` | Body changed externally between read and write. Re-call the tool — it re-reads. |
+| Body schema invalid | Run `dckl_doctor`; offer to refile via `dckl_task_create`. |
+| User asks "when?" | "dckl is calendar-free. What's blocking, and what's the priority?" |
+| User redirects scope mid-work (style, size, sub-feature) | Log a correction **first**, then execute. Why-line is mandatory; the git diff alone won't rescue you. |
+| User marks done with open criteria | Surface: "N criteria still unchecked. Still close?" Then respect the call. |
 
 ---
 
 ## The one thing to remember
 
 Every Write/Edit you do is either:
-1. **Inside a claimed task** → the user sees amber-pulse, the heartbeat
-   hook keeps it alive, `release` summarises.
-2. **Outside any task** → you must say so, once, and let the user decide
+
+1. **Inside a claimed issue** (label `status:in-progress`, assignee = you)
+   with the touched file under `## Context` — or with a logged
+   correction explaining why outside scope.
+2. **Outside any task** — you must say so once, and let the user decide
    whether to create a task or proceed untracked.
 
-If you can't tell which, run the grep in "The most common failure mode"
-and then decide.
+If you can't tell which, run `dckl_search { file: "<path>" }` and decide.

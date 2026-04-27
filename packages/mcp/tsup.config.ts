@@ -1,7 +1,7 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ["src/cli.ts"],
+  entry: ["src/index.ts"],
   outDir: "dist",
   format: ["esm"],
   target: "node20",
@@ -13,5 +13,5 @@ export default defineConfig({
     js: "#!/usr/bin/env node",
   },
   splitting: false,
-  shims: true,
+  shims: false,
 });

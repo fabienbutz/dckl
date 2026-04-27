@@ -1,25 +1,26 @@
 {
-  "name": "@dckl/cli",
+  "name": "@dckl/mcp",
   "version": "0.1.0",
-  "description": "CLI for dckl: project setup (init), human-readable status, and doctor checks. Wraps @dckl/core; the agent surface lives in @dckl/mcp.",
+  "description": "MCP server for dckl: a discipline layer over GitHub Issues with a temporal-sterile filter. STDIO transport.",
   "license": "MIT",
   "type": "module",
   "bin": {
-    "dckl": "./dist/cli.js"
+    "dckl-mcp": "./dist/index.js"
   },
   "files": ["dist", "README.md"],
   "engines": {
     "node": ">=20"
   },
   "scripts": {
-    "build": "tsup && node scripts/copy-assets.mjs",
+    "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run"
   },
   "dependencies": {
     "@dckl/core": "workspace:*",
-    "commander": "^12.1.0"
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
