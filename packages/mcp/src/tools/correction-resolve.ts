@@ -13,10 +13,7 @@ Result envelope reasons:
 - \`already-resolved\`   — comment is already prefixed with \`[resolved]\`.
 - \`not-found\`          — comment does not exist.`;
 
-export function registerCorrectionResolveTool(
-  server: McpServer,
-  runtime: Runtime,
-): void {
+export function registerCorrectionResolveTool(server: McpServer, runtime: Runtime): void {
   server.tool(
     "dckl_correction_resolve",
     DESCRIPTION,

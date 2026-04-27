@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveAuth, type ShellRunner } from "../src/auth.js";
+import { type ShellRunner, resolveAuth } from "../src/auth.js";
 import { AuthError } from "../src/errors.js";
 
 const noopRunner: ShellRunner = async () => "should-not-run";

@@ -4,12 +4,7 @@ import { dirname, resolve } from "node:path";
 import { stdin as input, stdout as output } from "node:process";
 import { createInterface } from "node:readline/promises";
 import { fileURLToPath } from "node:url";
-import {
-  DCKL_LABELS,
-  type DcklOctokit,
-  Runtime,
-  type RepoCoordinates,
-} from "@dckl/core";
+import { DCKL_LABELS, type DcklOctokit, type RepoCoordinates, Runtime } from "@dckl/core";
 
 export interface InitOptions {
   yes: boolean;
@@ -22,10 +17,7 @@ const MCP_SNIPPET = {
   args: ["-y", "@dckl/mcp@latest"],
 };
 
-const LABEL_DEFS: Record<
-  (typeof DCKL_LABELS)[number],
-  { color: string; description: string }
-> = {
+const LABEL_DEFS: Record<(typeof DCKL_LABELS)[number], { color: string; description: string }> = {
   "status:todo": { color: "ededed", description: "dckl: not started" },
   "status:in-progress": { color: "fbca04", description: "dckl: actively claimed" },
   "status:review": { color: "0e8a16", description: "dckl: needs review" },
@@ -97,11 +89,7 @@ async function patchMcpJson(opts: InitOptions): Promise<void> {
   const servers = (existing.mcpServers ?? {}) as Record<string, unknown>;
   if (servers.dckl) {
     if (
-      !(await confirm(
-        "An existing .mcp.json already has a 'dckl' entry. Overwrite?",
-        opts,
-        false,
-      ))
+      !(await confirm("An existing .mcp.json already has a 'dckl' entry. Overwrite?", opts, false))
     ) {
       log("- kept existing .mcp.json dckl entry");
       return;
@@ -170,12 +158,7 @@ async function ensureLabels(
   repo: RepoCoordinates,
   opts: InitOptions,
 ): Promise<void> {
-  if (
-    !(await confirm(
-      `Create the 11 dckl labels in ${repo.owner}/${repo.repo}?`,
-      opts,
-    ))
-  ) {
+  if (!(await confirm(`Create the 11 dckl labels in ${repo.owner}/${repo.repo}?`, opts))) {
     log("- skipped label creation");
     return;
   }
@@ -194,9 +177,7 @@ async function ensureLabels(
       created++;
     } catch (err: unknown) {
       const status =
-        err && typeof err === "object" && "status" in err
-          ? (err as { status: number }).status
-          : 0;
+        err && typeof err === "object" && "status" in err ? (err as { status: number }).status : 0;
       if (status === 422) {
         existed++;
         continue;
@@ -236,8 +217,8 @@ export async function runInit(opts: InitOptions): Promise<void> {
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     log(`! label step skipped: ${message}`);
-    log("  (set GH_TOKEN or run \`gh auth login\`, then \`dckl init --yes\`)");
+    log("  (set GH_TOKEN or run `gh auth login`, then `dckl init --yes`)");
   }
 
-  log("\ndone. Restart Claude Code, then ask: \"dckl status?\"");
+  log('\ndone. Restart Claude Code, then ask: "dckl status?"');
 }

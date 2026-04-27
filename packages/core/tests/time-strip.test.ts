@@ -56,9 +56,7 @@ describe("stripTime", () => {
   it("strips dates from nested arrays inside objects", () => {
     const input = {
       milestone: { title: "v1", due_on: "2026-12-31" },
-      issues: [
-        { number: 1, created_at: "a", labels: [{ name: "bug", created_at: "b" }] },
-      ],
+      issues: [{ number: 1, created_at: "a", labels: [{ name: "bug", created_at: "b" }] }],
     };
     expect(stripTime(input)).toEqual({
       milestone: { title: "v1" },

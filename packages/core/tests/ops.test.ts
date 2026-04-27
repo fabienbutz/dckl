@@ -55,7 +55,11 @@ describe("getIssue", () => {
 
   it("returns null on 404", async () => {
     const client = createTestClient([
-      { method: "GET", path: "/repos/deckel/dckl/issues/999", response: { status: 404, body: { message: "Not Found" } } },
+      {
+        method: "GET",
+        path: "/repos/deckel/dckl/issues/999",
+        response: { status: 404, body: { message: "Not Found" } },
+      },
     ]);
     const issue = await getIssue(client, REPO, 999);
     expect(issue).toBeNull();

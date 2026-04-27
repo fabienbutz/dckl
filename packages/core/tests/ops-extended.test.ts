@@ -39,7 +39,13 @@ describe("listIssueComments", () => {
     ]);
     const comments = await listIssueComments(client, REPO, 5);
     expect(comments).toEqual([
-      { id: 1, body: "[correction] scope changed", user: "alice", isCorrection: true, isResolved: false },
+      {
+        id: 1,
+        body: "[correction] scope changed",
+        user: "alice",
+        isCorrection: true,
+        isResolved: false,
+      },
       {
         id: 2,
         body: "[resolved] [correction] earlier note",
@@ -177,13 +183,18 @@ B
 describe("getTaskExport", () => {
   it("returns null when issue is missing", async () => {
     const client = createTestClient([
-      { method: "GET", path: "/repos/deckel/dckl/issues/77", response: { status: 404, body: { message: "nope" } } },
+      {
+        method: "GET",
+        path: "/repos/deckel/dckl/issues/77",
+        response: { status: 404, body: { message: "nope" } },
+      },
     ]);
     expect(await getTaskExport(client, REPO, 77)).toBeNull();
   });
 
   it("includes parsed body, comments, and dependency titles", async () => {
-    const body = `## Worum es geht\n\nA\n\n## Warum jetzt\n\nB\n\n## Woran man merkt, dass es fertig ist\n\n- [ ] x\n\n## Depends on\n\n- #42`;
+    const body =
+      "## Worum es geht\n\nA\n\n## Warum jetzt\n\nB\n\n## Woran man merkt, dass es fertig ist\n\n- [ ] x\n\n## Depends on\n\n- #42";
     const client = createTestClient([
       {
         method: "GET",
@@ -623,6 +634,10 @@ describe("createTask / createSprint / closeSprint", () => {
       },
     ]);
     const result = await closeSprint(client, REPO, 3);
-    expect(result).toEqual({ reason: "must-issues-open", milestoneNumber: 3, blockingIssues: [99] });
+    expect(result).toEqual({
+      reason: "must-issues-open",
+      milestoneNumber: 3,
+      blockingIssues: [99],
+    });
   });
 });

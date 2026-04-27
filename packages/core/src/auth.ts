@@ -20,8 +20,7 @@ export interface ResolveAuthOptions {
   runner?: ShellRunner;
 }
 
-const AUTH_HINT =
-  "Set the GH_TOKEN env var, or run `gh auth login` to authenticate the gh CLI.";
+const AUTH_HINT = "Set the GH_TOKEN env var, or run `gh auth login` to authenticate the gh CLI.";
 
 export async function resolveAuth(options: ResolveAuthOptions = {}): Promise<string> {
   const env = options.env ?? process.env;

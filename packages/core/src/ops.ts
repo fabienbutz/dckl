@@ -1,10 +1,6 @@
 import type { Octokit } from "@octokit/rest";
-import {
-  type AcceptanceItem,
-  type ParsedBody,
-  parseIssueBody,
-} from "./body-parser.js";
 import { buildIssueBody, toggleCheckbox } from "./body-builder.js";
+import { type AcceptanceItem, type ParsedBody, parseIssueBody } from "./body-parser.js";
 import { ConcurrentModificationError } from "./errors.js";
 import { stripTime } from "./time-strip.js";
 import {
@@ -118,9 +114,7 @@ function normalizeIssue(raw: RawIssue): IssueDetail {
     body: raw.body ?? "",
     labels: normalizeLabels(raw.labels),
     assignees: normalizeAssignees(raw.assignees ?? null),
-    milestone: raw.milestone
-      ? { number: raw.milestone.number, title: raw.milestone.title }
-      : null,
+    milestone: raw.milestone ? { number: raw.milestone.number, title: raw.milestone.title } : null,
   };
 }
 
@@ -152,7 +146,12 @@ export async function getIssue(
     });
     return normalizeIssue(stripTime(data) as RawIssue);
   } catch (err: unknown) {
-    if (err && typeof err === "object" && "status" in err && (err as { status: number }).status === 404) {
+    if (
+      err &&
+      typeof err === "object" &&
+      "status" in err &&
+      (err as { status: number }).status === 404
+    ) {
       return null;
     }
     throw err;
@@ -275,7 +274,12 @@ export async function claimIssue(
         name: "status:todo",
       });
     } catch (err: unknown) {
-      if (err && typeof err === "object" && "status" in err && (err as { status: number }).status === 404) {
+      if (
+        err &&
+        typeof err === "object" &&
+        "status" in err &&
+        (err as { status: number }).status === 404
+      ) {
         // label was removed concurrently — ignore
       } else {
         throw err;
@@ -429,7 +433,12 @@ export async function getSprintView(
     });
     milestone = normalizeMilestone(stripTime(data) as RawMilestone);
   } catch (err: unknown) {
-    if (err && typeof err === "object" && "status" in err && (err as { status: number }).status === 404) {
+    if (
+      err &&
+      typeof err === "object" &&
+      "status" in err &&
+      (err as { status: number }).status === 404
+    ) {
       return null;
     }
     throw err;
@@ -441,8 +450,9 @@ export async function getSprintView(
     state: "all",
     per_page: 100,
   });
-  const issues = (stripTime(issuesData) as RawIssue[])
-    .map((raw) => toIssueRef(normalizeIssue(raw)));
+  const issues = (stripTime(issuesData) as RawIssue[]).map((raw) =>
+    toIssueRef(normalizeIssue(raw)),
+  );
   return { milestone, issues };
 }
 
@@ -480,9 +490,7 @@ export async function searchIssues(
     per_page: 50,
     advanced_search: "true",
   });
-  const items = (stripTime(data.items) as RawIssue[]).map((raw) =>
-    toIssueRef(normalizeIssue(raw)),
-  );
+  const items = (stripTime(data.items) as RawIssue[]).map((raw) => toIssueRef(normalizeIssue(raw)));
   return items;
 }
 
@@ -523,10 +531,7 @@ export async function getNextUp(
 
 function is404(err: unknown): boolean {
   return Boolean(
-    err &&
-      typeof err === "object" &&
-      "status" in err &&
-      (err as { status: number }).status === 404,
+    err && typeof err === "object" && "status" in err && (err as { status: number }).status === 404,
   );
 }
 
@@ -799,11 +804,7 @@ export async function createTask(
     dependsOn: input.dependsOn,
     outOfScope: input.outOfScope,
   });
-  const labels = [
-    "status:todo",
-    `priority:${input.priority}`,
-    `type:${input.type}`,
-  ];
+  const labels = ["status:todo", `priority:${input.priority}`, `type:${input.type}`];
   const params: {
     owner: string;
     repo: string;
@@ -850,10 +851,7 @@ interface RawLabelDef {
   name: string;
 }
 
-export async function runDoctor(
-  client: Octokit,
-  repo: RepoCoordinates,
-): Promise<DoctorReport> {
+export async function runDoctor(client: Octokit, repo: RepoCoordinates): Promise<DoctorReport> {
   const warnings: DoctorWarning[] = [];
 
   const allOpen = await searchIssues(client, repo, {});
@@ -939,7 +937,10 @@ export async function runDoctor(
   });
   for (const def of labelDefs as RawLabelDef[]) {
     const name = def.name;
-    if (!KNOWN_LABELS.has(name) && (name.startsWith("status:") || name.startsWith("priority:") || name.startsWith("type:"))) {
+    if (
+      !KNOWN_LABELS.has(name) &&
+      (name.startsWith("status:") || name.startsWith("priority:") || name.startsWith("type:"))
+    ) {
       warnings.push({
         code: "non_dckl_label",
         message: `Label "${name}" looks dckl-shaped but is not in the dckl convention.`,

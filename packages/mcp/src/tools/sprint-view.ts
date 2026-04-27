@@ -19,9 +19,7 @@ export function registerSprintViewTool(server: McpServer, runtime: Runtime): voi
         const [client, repo] = await Promise.all([runtime.getClient(), runtime.getRepo()]);
         const data = await getSprintView(client, repo, milestone_number);
         if (!data) {
-          return asMcpContent(
-            fail("NOT_FOUND", `Milestone #${milestone_number} does not exist.`),
-          );
+          return asMcpContent(fail("NOT_FOUND", `Milestone #${milestone_number} does not exist.`));
         }
         return asMcpContent(ok(data));
       } catch (err) {

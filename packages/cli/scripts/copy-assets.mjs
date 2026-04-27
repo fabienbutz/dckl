@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { existsSync } from "node:fs";
 // Copies bundleable assets into the published cli/dist tree.
 //
 // - skill.md            : the canonical dckl Skill (loaded into user's
@@ -8,7 +9,6 @@
 // Missing source files are skipped silently — `dckl init` falls back to
 // printing a snippet when an asset is unavailable.
 import { copyFile, mkdir, readdir, stat } from "node:fs/promises";
-import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -41,11 +41,7 @@ if (existsSync(tmplSrc)) {
   for (const name of entries) {
     if (!name.startsWith("dckl-")) continue;
     const lower = name.toLowerCase();
-    if (
-      !lower.endsWith(".yml") &&
-      !lower.endsWith(".yaml") &&
-      !lower.endsWith(".md")
-    ) {
+    if (!lower.endsWith(".yml") && !lower.endsWith(".yaml") && !lower.endsWith(".md")) {
       continue;
     }
     const s = await stat(join(tmplSrc, name));
@@ -53,5 +49,5 @@ if (existsSync(tmplSrc)) {
     await copyIfExists(join(tmplSrc, name), join(distAssets, "templates", name));
   }
 } else {
-  console.log(`[copy-assets] no .github/ISSUE_TEMPLATE/ — skipping templates`);
+  console.log("[copy-assets] no .github/ISSUE_TEMPLATE/ — skipping templates");
 }

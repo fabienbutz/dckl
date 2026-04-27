@@ -46,9 +46,7 @@ Reason it matters now.
     const body = "## Worum es geht\n\nOnly this section.";
     const parsed = parseIssueBody(body);
     expect(parsed.warnings).toContain('Missing section: "## Warum jetzt"');
-    expect(parsed.warnings).toContain(
-      'Missing section: "## Woran man merkt, dass es fertig ist"',
-    );
+    expect(parsed.warnings).toContain('Missing section: "## Woran man merkt, dass es fertig ist"');
   });
 
   it("does not warn about optional sections (Context, Depends on, Out of scope)", () => {
