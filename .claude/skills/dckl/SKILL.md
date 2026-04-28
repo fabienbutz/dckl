@@ -229,6 +229,11 @@ Then summarise in chat:
 - Whether you recommend `done`, `review`, or keeping `in-progress`.
 - Corrections you added (by comment id) and any you resolved.
 
+After release/close, `/clear` is cheap if there's no open thread —
+dckl re-orients on restart via the `dckl://active` and `dckl://status`
+resources. See the global session-hygiene rules in `~/.claude/CLAUDE.md`
+for when to flag a "good `/clear` moment" to the user.
+
 ---
 
 ## Learned anti-patterns
