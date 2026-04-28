@@ -178,8 +178,18 @@ geht`. When in doubt, ask.
 - When you satisfy an acceptance criterion, flip its checkbox:
   `dckl_check_toggle <#> "<text matching the criterion>"`. The pattern
   is a case-insensitive substring of the criterion text.
-- When you discover a new issue mid-work, log it:
-  `dckl_correction_add <#> "<one-line description>"`.
+- **When you discover a finding mid-work, classify it first:**
+  - **In-scope** (touches files in `## Context` of the active task,
+    or affects an existing acceptance criterion) → log a correction:
+    `dckl_correction_add <#> "<one-line description>"`. The active
+    issue stays the carrier.
+  - **Out-of-scope** (different feature, files outside `## Context`,
+    new acceptance criteria) → surface a proposal to the user:
+    title + suggested `type` + `priority` + `milestone: null`
+    (= backlog). **Do NOT call `dckl_task_create` yourself.** Wait
+    for the user's confirmation. If they decline, fall back to
+    logging it as a correction on the active issue so the finding
+    isn't lost.
 - **When the user redirects scope mid-work** (style tweaks, new
   dimensions, added sub-features, "out of scope" that suddenly is in),
   log a correction **before** executing the change — not after, not at
@@ -192,6 +202,9 @@ geht`. When in doubt, ask.
 - **Never call `dckl_task_close` yourself.** That's a user-only
   decision. Surface a recommendation; let them call it (or do it via
   the GitHub UI).
+- **Same for `dckl_task_create`.** Issue creation is a PM action.
+  When you spot something worth tracking mid-work, propose it (title,
+  defaults, milestone) and wait for user approval — don't auto-file.
 
 ### Step 5 — Release or close
 
@@ -291,15 +304,68 @@ The tool generates a schema-conforming body and sets `status:todo` +
 - [ ] At least one `acceptance_criteria` entry is testable (not "Done")
 - [ ] `worum_es_geht` answers what; `warum_jetzt` answers why.
 - [ ] `out_of_scope` present if scope is non-obvious.
-- [ ] Implementable in one focused session.
+- [ ] Sprint-task: implementable in one focused session.
+      Backlog feature-issue: see "Backlog vs sprint-task granularity"
+      below — multi-PR is allowed, but the issue still captures one
+      user-facing outcome.
 
 #### Anti-patterns — recognise and refuse
 
 - Vague titles ("Fix auth", "Improve performance").
 - Empty `context_files` when files will be touched (= yolo-refactor invite).
 - `depends_on` as wishlist ("nice-if" is not a dependency).
-- More than ~5 acceptance criteria → split into multiple tasks.
-- Body longer than this skill section → split.
+- More than ~5 acceptance criteria on a sprint task → split into
+  multiple tasks. (Backlog feature-issues may carry slightly more
+  outcome-shaped criteria — see granularity section.)
+- Body longer than this skill section on a sprint task → split. (Same
+  carve-out as above for backlog feature-issues.)
+- Pre-splitting a feature into 3-4 stub backlog issues when one
+  feature-level issue would capture the same intent better — split at
+  sprint-pull, not at filing.
+
+### Backlog vs sprint-task granularity
+
+dckl issues come in two flavours. They follow different rules.
+
+| | Backlog feature-issue | Sprint task |
+|---|---|---|
+| Where | `milestone: null` | inside a milestone |
+| Captures | one user-facing outcome | one focused session of work |
+| Size | may span multiple PRs | ≤ 1 PR, ≤ 400 LOC |
+| Acceptance criteria | outcome-shaped, ≤ 7 | implementation-shaped, ≤ 5 |
+| Body length | may exceed this skill section | bounded |
+| Lifecycle | gets split into sprint tasks at sprint-pull | claim → ship → close |
+
+**Default is sprint-task.** When unsure, file as a sprint task —
+session-sized issues are easier to claim, prioritise, and ship. Promote
+to a feature-issue only when the outcome genuinely needs multiple PRs
+and split-at-pull is more useful than split-at-filing (typical signals:
+schema change + UI + migration + storefront ripple effects).
+
+**One outcome rule.** A backlog feature-issue still captures *one*
+user-facing outcome. "Recurring events with multi-date and rule-based
+schedules" is one outcome. "Recurring events + per-occurrence pricing +
+ICS import + cohort migration" is four outcomes — file four issues.
+
+**Outcome-shaped acceptance criteria.** Backlog ACs describe the
+*outcome*, not the implementation:
+- ✅ "Event can have multiple scheduled occurrences; registrations link
+  to a specific occurrence."
+- ❌ "New `event_occurrences` table; uses RFC 5545 RRULE library;
+  `event_registrations.eventId` becomes nullable."
+
+The implementation may shift over time before pickup. Outcome-shaped
+ACs survive that shift; implementation-shaped ACs become wrong.
+
+**At sprint-pull**, the feature-issue is split into ≤ 1-PR sprint
+tasks. Two link patterns are fine:
+- `depends_on` chain — sprint tasks reference the parent feature-issue;
+  parent stays open until all dependants close.
+- Checklist in parent body — sprint tasks listed as `- [ ] #N` checkboxes
+  in the parent's `## Woran man merkt, dass es fertig ist` section.
+
+Either way, the parent feature-issue is the canonical "why" record;
+sprint tasks are the canonical "what shipped" records.
 
 ### Creating a sprint
 
@@ -320,6 +386,22 @@ users." · "All write endpoints return 429 under sustained load."
 
 **Bad descriptions:** "Improve auth" (how?) · "Q2 work" (calendar, not
 theme).
+
+### Planning a sprint from the backlog
+
+When pulling existing tasks (no milestone) into a new or existing
+sprint:
+
+1. List backlog candidates: `dckl_search { milestone: null, status: "todo" }`.
+2. Filter by theme. Surface matching tasks to the user with title +
+   `type` + `priority` + a one-line "why this fits the theme".
+3. **Wait for per-task confirmation.** Don't bulk-move.
+4. The move itself: until `dckl_task_assign` ships, ask the user to run
+   `gh issue edit <#> --milestone "<sprint name>"` or use the GitHub
+   UI. Once `dckl_task_assign` exists, call it directly.
+
+Reverse direction (descope from sprint back to backlog): same
+workflow, target `milestone: null`.
 
 ### Updating the vision
 
