@@ -6,7 +6,9 @@
 > The first PM tool with no calendar. By design.
 > Plan in dependencies, not days.
 
-> **Status:** v0.1 in active development — see [TODOS.md](./TODOS.md) for the roadmap.
+> **Status:** v0.1 in active development — see the
+> [open Milestones](https://github.com/fabienbutz/dckl/milestones) for
+> the active roadmap and sprint contents.
 > The pre-pivot local CLI/UI build was removed; check out the parent of commit `868ff80` to read it.
 
 ## Why

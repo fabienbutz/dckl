@@ -1,42 +1,44 @@
 # Project
 
-<!-- dckl:start (auto-managed, do not edit between markers) -->
-## dckl — Task Tracker (managed by `dckl init`)
+## dckl — discipline layer over GitHub Issues
 
-Sprint, chunk, and project-vision state lives under `.dckl/`. Full
-protocols, quality bars, commit standards, and anti-patterns live in
-`.claude/skills/dckl/SKILL.md`. Read that skill before acting on any
-dckl-tracked work; it is authoritative when it disagrees with this block.
+dckl is the project we're building, *and* the system we use to manage
+this repo. There is no `.dckl/` folder, no local state — issues,
+milestones, and labels in GitHub are the source of truth.
 
-### Commands you invoke directly
+The full agent specification lives at `.claude/skills/dckl/SKILL.md`.
+That skill is authoritative for all dckl workflow — read it before any
+`dckl_*` tool call. This file is the primer.
 
-| Situation | Command |
-|---|---|
-| Start working on a task | `dckl task claim <ID>` |
-| Pause / switch task (status stays) | `dckl task release <ID>` |
-| Mark a task done + release claim | `dckl task close <ID>` (add `--force` if reminders still open) |
-| Toggle a reminder or test check | `dckl check <ID> <check-id>` |
-| Log an issue found mid-work | `dckl correction add <ID> "<text>"` |
-| Close a resolved correction | `dckl correction resolve <ID> <cid>` (add `--target-sprint` to forward) |
-| Archive a sprint with SUMMARY.md | `dckl sprint close <SPRINT-ID>` (add `--force` / `--dry-run`) |
-| Audit layout + auto-clear orphans | `dckl doctor [--fix]` |
-| Read the whole task context (pipe to Claude) | `dckl export <ID>` |
-| Project-wide state (gaps, in-flight, recent) | `dckl status` |
-| Start the UI server | `dckl` (default command is `serve`) |
-| Stop the running server | `dckl stop` |
+## Vision
 
-`dckl heartbeat` exists but fires automatically via the
-`PostToolUse` hook in `.claude/settings.json`. **Do not invoke it
-manually.**
+**North star.** Project management for solo devs working with AI
+agents: no calendar, no sidecar — just GitHub Issues + a discipline
+layer that gives the agent a temporal-sterile view of the work.
 
-### Invariants
+**Audience.** Solo devs and very small teams using Claude Code.
+Other AI hosts (Cursor, Cline, …) are TBD post-v0.1.
 
-- Mark `status: done` only when the user explicitly approves.
-- Before any Write/Edit on a file you don't recognize, check whether it
-  belongs to a tracked task:
-  `grep -lF "<file>" .dckl/sprints/*/tasks/*.md`.
-- Do not modify `.dckl/config.yaml`, `templates/`, or `VISION.md`
-  without asking.
-- `.dckl/.port` and `.dckl/.active-task` are runtime artefacts,
-  already gitignored — never commit them.
-<!-- dckl:end -->
+**Non-goals.**
+- Stakeholder PM (Linear / Jira / Asana stay in their lane).
+- Calendar features — no due dates, no time-boxed sprints, no
+  burndowns. By design.
+- CI/CD, PR review, code analysis.
+
+**Current phase.** v0.1 pre-release. The active sprint and operational
+tasks live in GitHub Milestones + Issues — not in this file. See the
+README for the positioning manifest.
+
+## Decisions
+
+- **Source of truth:** GitHub Issues + Milestones + Labels. No `.dckl/`
+  folder. No `TODOS.md`. No local state.
+- **Roadmap = milestone list.** A separate `ROADMAP.md` would only
+  drift; per-milestone Description carries goal + out-of-scope + DoD.
+- **Temporal-sterile by design.** The MCP tool surface strips all date
+  fields before they reach the agent. The agent never sees "when".
+- **Distribution:** npm via `npx -y @dckl/cli init`.
+- **License:** MIT.
+- **Telemetry:** none, ever.
+- **Platforms:** macOS + Linux first; Windows best-effort, no CI.
+- **AI host:** Claude Code only in v0.1.

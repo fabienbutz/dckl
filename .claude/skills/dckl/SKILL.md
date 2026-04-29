@@ -497,6 +497,52 @@ Avoid: `Update auth.ts` (vague), `WIP passkeys` (don't commit WIP),
 
 ---
 
+## Installation modes
+
+`dckl init` writes a `.mcp.json` with the **published** mode by default:
+
+```json
+{
+  "mcpServers": {
+    "dckl": {
+      "command": "npx",
+      "args": ["-y", "@dckl/mcp@latest"]
+    }
+  }
+}
+```
+
+**Dev mode** — when `@dckl/mcp` is not yet on npm, or you want to test
+a local build, replace the entry with a direct path:
+
+```json
+{
+  "mcpServers": {
+    "dckl": {
+      "command": "node",
+      "args": ["/absolute/path/to/dckl/packages/mcp/dist/index.js"]
+    }
+  }
+}
+```
+
+The path is machine-specific — gitignore the file in dev mode (add
+`.mcp.json` to `.gitignore`).
+
+Both modes require:
+
+- **Auth.** Either `gh auth login` (recommended; OAuth via browser,
+  token in OS keychain) or `GH_TOKEN` env var with `repo` scope (for CI
+  / headless). dckl never persists the token itself.
+- **Repo detection.** An `origin` remote pointing to a GitHub repo, or
+  `GH_REPO=owner/name` exported in the environment.
+
+If the repo doesn't exist on GitHub yet, run `gh repo create` first;
+`dckl init` does not create the repo for you (planned: see backlog
+issue *"cold-start bridge"*).
+
+---
+
 ## The one thing to remember
 
 Every Write/Edit you do is either:
